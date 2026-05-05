@@ -1,7 +1,8 @@
 <?php
 
-declare(strict_types=1);
+namespace app\aatabase;
 
+<<<<<<< HEAD
 namespace app\database;
 
 use Doctrine\DBAL\Connection as DBALConnection;
@@ -30,4 +31,25 @@ final class Connection
 
     # Previne instanciação direta — uso exclusivo via Connection::get()
     private function __construct() {}
+=======
+use Doctrine\DBAL\Connection;
+
+class Database
+{
+    private static ?Connection $conn = null;
+
+    public static function connection(): Connection
+    {
+        if (!self::$conn) {
+            self::$conn = require __DIR__ . '/config/connection.php';
+        }
+
+        return self::$conn;
+    }
+
+    public static function qb()
+    {
+        return self::connection()->createQueryBuilder();
+    }
+>>>>>>> ed49be637a2dbf3b135d06bae66d9d0c3b746ae7
 }

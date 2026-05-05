@@ -4,12 +4,14 @@
   "description": "Repositório de apoio à aula Técnicas de Teste de Software, preparado para apresentação aos alunos do Senac.",
   "license": "MIT",
   "author": "GABRIEL LUIZ DA SILVA",
+  "type": "module",
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "cmd /c \"vite & start http://localhost:80\"",
     "dev:assets": "vite",
+    "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
