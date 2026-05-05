@@ -2,23 +2,38 @@
 
 declare(strict_types=1);
 
-use Phinx\Migration\AbstractMigration;
+namespace app\database\migration;
 
-final class Customer extends AbstractMigration
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+final class Version20260317045617 extends AbstractMigration
 {
-    public function change(): void
+    public function getDescription(): string
     {
-        $table = $this->table("customer", ['id' => false, 'primary_key' => ['id'], 'comment' => 'Tabela de cliente do sistema']);
-        $table->addColumn('id', 'biginteger', ['identity' => true, 'null' => false])
-            ->addColumn('nome_fantasia', 'text', ['null' => true])
-            ->addColumn('sobrenome_razao', 'text', ['null' => true])
-            ->addColumn('cpf_cnpj', 'text', ['null' => true])
-            ->addColumn('inscricao_estadual', 'text', ['null' => true])
-            ->addColumn('nascimento_fundacao', 'date', ['null' => true])
-            ->addColumn('ativo', 'boolean', ['null' => true, 'default' => true])
-            ->addColumn('criado_em', 'timestamp', ['null' => false, 'default' => 'CURRENT_TIMESTAMP', 'comment' => 'Data e hora de criação do registro'])
-            ->addColumn('atualizado_em', 'timestamp', ['null' => true, 'default' => 'CURRENT_TIMESTAMP', 'update' => 'CURRENT_TIMESTAMP', 'comment' => 'Data e hora da última atualização do registro'])
-            ->addIndex(['cpf_cnpj'], ['unique' => true])
-            ->create();
+        return 'Customer';
+    }
+
+    public function up(Schema $schema): void
+    {
+        $table = $schema->createTable('customer');
+
+        $table->addColumn('id', 'bigint', ['autoincrement' => true]);
+        $table->addColumn('nome_fantasia', 'string', ['length' => 255]);
+        $table->addColumn('sobrenome_razao', 'string', ['length' => 255]);
+        $table->addColumn('cpf_cnpj', 'string', ['length' => 18]);
+        $table->addColumn('inscricao_estadual', 'string', ['length' => 30]);
+        $table->addColumn('nascimento_fundacao', 'date');
+        $table->addColumn('ativo', 'boolean', ['default' => true]);
+        $table->addColumn('criado_em', 'datetimetz_immutable', ['default' => 'CURRENT_TIMESTAMP']);
+        $table->addColumn('atualizado_em', 'datetimetz_immutable', ['default' => 'CURRENT_TIMESTAMP']);
+
+        $table->setPrimaryKey(['id']);
+        $table->addUniqueIndex(['cpf_cnpj']);
+    }
+
+    public function down(Schema $schema): void
+    {
+        $schema->dropTable('customer');
     }
 }

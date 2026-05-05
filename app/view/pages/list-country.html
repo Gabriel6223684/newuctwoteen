@@ -1,0 +1,84 @@
+{% extends 'layouts/main.html' %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb float-sm-end">
+    <li class="breadcrumb-item"><a href="/">Início</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Lista de países</li>
+</ol>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title float-left">Lista de países</h3>
+                <a href="/pais/detalhes" class="btn btn-success float-right">
+                    <i class="fa-solid fa-plus"></i>
+                    Novo
+                </a>
+            </div>
+            <div class="card-body">
+                <table id="dataTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Código ISO</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Delete -->
+<div class="modal fade" id="modal-delete">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Confirma exclusão?</h4>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="delete-id">
+                <p>Tem certeza que deseja excluir este registro?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ vite('resources/js/pages/list-country.js') }}
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "responsive": true,
+        "ajax": {
+            "url": "/pais/listingdata",
+            "type": "POST"
+        },
+        "columns": [
+            { "data": 0 },
+            { "data": 1 },
+            { "data": 2 },
+            { "data": 3, "orderable": false, "searchable": false }
+        ],
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+        }
+    });
+});
+</script>
+{% endblock %}

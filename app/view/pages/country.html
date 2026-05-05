@@ -1,0 +1,58 @@
+{% extends 'layouts/main.html' %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb float-sm-end">
+    <li class="breadcrumb-item"><a href="/">Início</a></li>
+    <li class="breadcrumb-item"><a href="/pais/lista">Lista de países</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Detalhes do país</li>
+</ol>
+{% endblock %}
+
+{% block main %}
+<form id="form">
+    <input type="hidden" id="action" name="action" value="{{action}}">
+    <input type="hidden" id="id" name="id" value="{{id}}">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <a href="/pais/lista" class="btn btn-warning">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Voltar
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8 col-md-8">
+                            <div class="form-floating mb-3">
+                                <input autofocus type="text" class="form-control" id="name"
+                                    name="name" placeholder="Digite o nome do país!"
+                                    value="{{country.name}}" required>
+                                <label for="name">Nome do país</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="iso_code" name="iso_code"
+                                    placeholder="Digite o código ISO!" maxlength="3"
+                                    value="{{country.iso_code}}" required>
+                                <label for="iso_code">Código ISO</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button id="insert" type="button" class="btn btn-success">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block script %}
+{{ vite('resources/js/pages/country.js') }}
+{% endblock %}

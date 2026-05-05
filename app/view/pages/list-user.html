@@ -1,0 +1,106 @@
+{% extends 'layouts/main.html' %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb bg-transparent p-3 mb-4 shadow-sm rounded">
+    <li class="breadcrumb-item"><a href="/"><i class="fa-solid fa-house text-primary me-1"></i>Início</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Lista de Usuários</li>
+</ol>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="fa-solid fa-users text-primary me-2"></i>
+                    Todos os Usuários 
+                    <span class="badge bg-primary ms-2" id="totalBadge">-</span>
+                </h4>
+                <small class="text-muted">Gerencie usuários, ative/desative e realize buscas avançadas</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fa-solid fa-gear"></i> Opções <span class="caret"></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <button class="dropdown-item" onclick="table.page.len(10).draw()"><i class="fa-solid fa-list me-2"></i>10 por página</button>
+                    <button class="dropdown-item" onclick="table.page.len(25).draw()"><i class="fa-solid fa-list me-2"></i>25 por página</button>
+                    <button class="dropdown-item" onclick="table.page.len(50).draw()"><i class="fa-solid fa-list me-2"></i>50 por página</button>
+                    <hr class="dropdown-divider">
+                    <button class="dropdown-item text-danger" onclick="table.destroy();"><i class="fa-solid fa-refresh me-2"></i>Recarregar</button>
+                </div>
+                <a href="/usuario/detalhes" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-plus me-1"></i>Novo Usuário
+                </a>
+            </div>
+        </div>
+
+        <div class="card shadow-lg border-0 overflow-hidden">
+            <div class="card-header bg-gradient-primary text-white py-4 position-relative">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="mb-0">
+                            <i class="fa-solid fa-table-cells me-2"></i>Lista Completa
+                            <small class="opacity-75 d-block mt-1">Busca em tempo real por nome e email</small>
+                        </h6>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-transparent border-0">
+                                <i class="fa-solid fa-magnifying-glass text-white"></i>
+                            </span>
+                            <input type="text" class="form-control bg-white border-start-0 shadow-none" id="quickSearch" placeholder="Busca rápida...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="dataTable" class="table table-hover align-middle mb-0" style="min-height: 400px;">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th class="border-0 py-4">#</th>
+                                <th class="border-0 py-4">Nome Completo</th>
+                                <th class="border-0 py-4">Email</th>
+                                <th class="border-0 py-4">Status</th>
+                                <th class="border-0 py-4 text-center" style="width: 120px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="loading-placeholder">
+                                        <i class="fa-solid fa-users fa-3x text-muted mb-3 opacity-50"></i>
+                                        <p class="text-muted mb-0">Carregando usuários...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light border-0 py-4">
+                <div class="row align-items-center">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-muted small">
+                                Mostrando <strong id="showStart">-</strong> a <strong id="showEnd">-</strong> de 
+                                <strong id="totalRecords">-</strong> registros
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <nav aria-label="Navegação de página">
+                            <ul class="pagination pagination-sm justify-content-sm-end mb-0" id="dataTable_paginate">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/pages/list-user.js?v={{ random() }}"></script>
+{% endblock %}
