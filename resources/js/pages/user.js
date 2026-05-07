@@ -6,7 +6,8 @@ $(document).ready(function() {
         e.preventDefault();
         
         const formData = new FormData(this);
-        const url = id ? '/api/usuario/update' : '/api/usuario/insert';
+        const url = id ? '/usuario/update' : '/usuario/insert';
+
         
         $.ajax({
             url: url,

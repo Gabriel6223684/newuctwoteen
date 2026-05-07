@@ -4,9 +4,19 @@ $(document).ready(function() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: '/api/usuario/listingdata',
-            type: 'POST'
+            url: '/usuario/listingdata',
+            type: 'POST',
+            error: function(xhr, status, error) {
+                console.error('DataTables /usuario/listingdata error:', {
+                    status: xhr.status,
+                    responseText: xhr.responseText,
+                    statusText: status,
+                    error: error
+                });
+                Swal?.fire?.('Erro', 'Falha ao carregar usuários. Veja o console.', 'error');
+            }
         },
+
         columns: [
             { data: 0, name: 'id' },
             { data: 1, name: 'name' },
@@ -33,7 +43,8 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '/api/usuario/delete',
+                    url: '/usuario/delete',
+
                     method: 'POST',
                     data: { id: id },
                     success: function(response) {

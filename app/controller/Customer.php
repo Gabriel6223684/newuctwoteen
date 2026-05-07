@@ -6,6 +6,20 @@ namespace app\controller;
 
 final class Customer extends Base
 {
+    private function normalizeAtivo($value): bool
+    {
+        if ($value === true) {
+            return true;
+        }
+
+        if ($value === null) {
+            return false;
+        }
+
+        $valueStr = strtolower(trim((string) $value));
+        return in_array($valueStr, ['1', 'true', 'on', 'yes'], true);
+    }
+
     public function list($request, $response)
     {
         return $this->getTwig()
@@ -48,7 +62,7 @@ final class Customer extends Base
             'cpf_cnpj' => $form['numeroDocumento'] ?? '',
             'inscricao_estadual' => $form['registroSecundario'] ?? '',
             'nascimento_fundacao' => $this->convertBrDateToDatabaseFormat($form['dataRegistro']),
-            'ativo' => ($form['ativo'] === 'true') ? true : false
+            'ativo' => $this->normalizeAtivo($form['ativo'] ?? null)
         ];
         try {
             $IsInserted = \app\database\DB::connection()->insert('customer', $FieldsAndValues);
@@ -75,7 +89,7 @@ final class Customer extends Base
             'cpf_cnpj' => $form['numeroDocumento'] ?? null,
             'inscricao_estadual' => $form['registroSecundario'] ?? null,
             'nascimento_fundacao' => $this->convertBrDateToDatabaseFormat($form['dataRegistro']),
-            'ativo' => ($form['ativo'] === 'true') ? true : false
+            'ativo' => $this->normalizeAtivo($form['ativo'] ?? null)
         ];
         try {
             $IsUpdated = \app\database\DB::connection()->update('customer', $FieldsAndValues, ['id' => $id]);

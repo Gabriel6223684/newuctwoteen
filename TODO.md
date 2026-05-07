@@ -1,6 +1,10 @@
-# TODO: Fix npm run dev to auto-open app page
+# TODO - Ajuste de erro da página ("application" / Slim Application Error)
 
-## Steps:
-1. [x] Install open-cli: `npm install -D open-cli`
-2. [x] Edit package.json scripts to chain vite + browser open
-3. [x] Test `npm run dev` opens http://localhost:80
+## Passos
+1. Confirmar mensagem de erro no navegador/terminal e identificar ponto de falha (stack trace).
+2. Verificar onde a aplicação tenta conectar no Postgres (host/port/dbname/user).
+3. Ajustar configuração de DB para rodar dentro do Docker (host deve apontar para o service `postgres`).
+4. Garantir que `.env` esteja correto e seja carregado no container durante execução.
+5. Reiniciar containers e validar endpoints.
+6. Rodar testes (pest) e/ou uma página que antes falhava.
+

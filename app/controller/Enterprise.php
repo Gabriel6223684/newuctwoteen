@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace app\controller;
 
-final class Supplier extends Base
+final class Enterprise extends Base
 {
     public function list($request, $response)
     {
         return $this->getTwig()
-            ->render($response, $this->setView('list-supplier'), [
-                'titulo' => 'Lista de fornecedores',
+            ->render($response, $this->setView('list-enterprise'), [
+                'titulo' => 'Lista de empresas',
             ])
             ->withHeader('Content-Type', 'text/html')
             ->withStatus(200);
@@ -20,21 +20,21 @@ final class Supplier extends Base
     {
         $id = $args['id'] ?? null;
         $action = ($id === null) ? 'c' : 'e';
-        $supplier = [];
+        $enterprise = [];
 
         if (!is_null($id)) {
-            $qb = \app\database\DB::select('*')->from('suppliers');
-            $supplier = $qb
+            $qb = \app\database\DB::select('*')->from('enterprises');
+            $enterprise = $qb
                 ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
         }
 
         return $this->getTwig()
-            ->render($response, $this->setView('supplier'), [
-                'titulo' => 'Detalhes do fornecedor',
+            ->render($response, $this->setView('enterprise'), [
+                'titulo' => 'Detalhes da empresa',
                 'id' => $id,
                 'action' => $action,
-                'supplier' => $supplier,
+                'enterprise' => $enterprise,
             ])
             ->withHeader('Content-Type', 'text/html')
             ->withStatus(200);
@@ -45,22 +45,25 @@ final class Supplier extends Base
         $form = $request->getParsedBody();
 
         $fieldsAndValues = [
-            'enterprise_id' => $form['enterprise_id'] ?? null,
-            'address_id' => $form['address_id'] ?? null,
-            'nome_fantasia' => $form['nome_fantasia'] ?? '',
-            'razao_social' => $form['razao_social'] ?? '',
-            'cpf_cnpj' => $form['cpf_cnpj'] ?? '',
-            'inscricao_estadual' => $form['inscricao_estadual'] ?? null,
-            'active' => $this->normalizeAtivo($form['active'] ?? null),
+            'numeroDocumento' => $form['numeroDocumento'] ?? '',
+            'nomeExibicao' => $form['nomeExibicao'] ?? '',
+            'nomeLegal' => $form['nomeLegal'] ?? '',
+            'registroSecundario' => $form['registroSecundario'] ?? null,
+            'dataRegistro' => $form['dataRegistro'] ?? null,
+            'regimeTributario' => $form['regimeTributario'] ?? null,
+            'codigoAtividadeEconomica' => $form['codigoAtividadeEconomica'] ?? null,
+            'cnpj' => $form['cnpj'] ?? null,
+            'cnae' => $form['cnae'] ?? null,
+            'ativo' => $this->normalizeAtivo($form['ativo'] ?? null),
         ];
 
         try {
-            $isInserted = \app\database\DB::connection()->insert('suppliers', $fieldsAndValues);
+            $isInserted = \app\database\DB::connection()->insert('enterprises', $fieldsAndValues);
             if (!$isInserted) {
                 return $this->json($response, ['status' => false, 'msg' => 'Erro ao inserir', 'id' => 0], 500);
             }
 
-            $row = \app\database\DB::select('id')->from('suppliers')->orderBy('id', 'DESC')->fetchAssociative();
+            $row = \app\database\DB::select('id')->from('enterprises')->orderBy('id', 'DESC')->fetchAssociative();
             $id = is_array($row) && isset($row['id']) ? (int) $row['id'] : 0;
 
             return $this->json($response, ['status' => true, 'msg' => 'Salvo com sucesso!', 'id' => $id], 201);
@@ -79,17 +82,20 @@ final class Supplier extends Base
         }
 
         $fieldsAndValues = [
-            'enterprise_id' => $form['enterprise_id'] ?? null,
-            'address_id' => $form['address_id'] ?? null,
-            'nome_fantasia' => $form['nome_fantasia'] ?? null,
-            'razao_social' => $form['razao_social'] ?? null,
-            'cpf_cnpj' => $form['cpf_cnpj'] ?? null,
-            'inscricao_estadual' => $form['inscricao_estadual'] ?? null,
-            'active' => $this->normalizeAtivo($form['active'] ?? null),
+            'numeroDocumento' => $form['numeroDocumento'] ?? null,
+            'nomeExibicao' => $form['nomeExibicao'] ?? null,
+            'nomeLegal' => $form['nomeLegal'] ?? null,
+            'registroSecundario' => $form['registroSecundario'] ?? null,
+            'dataRegistro' => $form['dataRegistro'] ?? null,
+            'regimeTributario' => $form['regimeTributario'] ?? null,
+            'codigoAtividadeEconomica' => $form['codigoAtividadeEconomica'] ?? null,
+            'cnpj' => $form['cnpj'] ?? null,
+            'cnae' => $form['cnae'] ?? null,
+            'ativo' => $this->normalizeAtivo($form['ativo'] ?? null),
         ];
 
         try {
-            $isUpdated = \app\database\DB::connection()->update('suppliers', $fieldsAndValues, ['id' => $id]);
+            $isUpdated = \app\database\DB::connection()->update('enterprises', $fieldsAndValues, ['id' => $id]);
             if (!$isUpdated) {
                 return $this->json($response, ['status' => false, 'msg' => 'Erro ao atualizar', 'id' => (int) $id], 403);
             }
@@ -110,12 +116,12 @@ final class Supplier extends Base
         }
 
         try {
-            $isDeleted = \app\database\DB::connection()->delete('suppliers', ['id' => $id]);
+            $isDeleted = \app\database\DB::connection()->delete('enterprises', ['id' => $id]);
             if (!$isDeleted) {
                 return $this->json($response, ['status' => false, 'msg' => 'Erro ao excluir', 'id' => (int) $id], 403);
             }
 
-            return $this->json($response, ['status' => true, 'msg' => 'Excluído!', 'id' => (int) $id]);
+            return $this->json($response, ['status' => true, 'msg' => 'Excluída!', 'id' => (int) $id]);
         } catch (\Exception $e) {
             return $this->json($response, ['status' => false, 'msg' => $e->getMessage(), 'id' => 0], 500);
         }
@@ -144,9 +150,9 @@ final class Supplier extends Base
 
         $columns = [
             0 => 'id',
-            1 => 'nome_fantasia',
-            2 => 'cpf_cnpj',
-            3 => 'active',
+            1 => 'nomeExibicao',
+            2 => 'cnpj',
+            3 => 'ativo',
         ];
 
         $posField = (isset($form['order'][0]['column']) && isset($columns[(int) $form['order'][0]['column']]))
@@ -158,40 +164,40 @@ final class Supplier extends Base
         $orderField = $columns[$posField];
 
         try {
-            $totalRecords = (int) \app\database\DB::select('COUNT(*)')->from('suppliers')->fetchOne(0);
+            $totalRecords = (int) \app\database\DB::select('COUNT(*)')->from('enterprises')->fetchOne(0);
 
-            $query = \app\database\DB::select('*')->from('suppliers');
+            $query = \app\database\DB::select('*')->from('enterprises');
 
             if (!is_null($term) && $term !== '') {
                 $query->setParameter('term', '%' . $term . '%');
-                $query->where('nome_fantasia ILIKE :term')
-                    ->orWhere('razao_social ILIKE :term')
-                    ->orWhere('cpf_cnpj ILIKE :term')
-                    ->orWhere('inscricao_estadual ILIKE :term');
+                $query->where('nomeExibicao ILIKE :term')
+                    ->orWhere('nomeLegal ILIKE :term')
+                    ->orWhere('cnpj ILIKE :term')
+                    ->orWhere('numeroDocumento ILIKE :term');
             }
 
             $filteredRecords = (int) (clone $query)
                 ->select('COUNT(*)')
                 ->fetchOne(0);
 
-            $suppliers = $query
+            $enterprises = $query
                 ->orderBy($orderField, $orderType)
                 ->setFirstResult($start)
                 ->setMaxResults($length)
                 ->fetchAllAssociative();
 
             $rows = [];
-            foreach ($suppliers as $key => $value) {
-                $status = ($value['active'] === true || $value['active'] === 1) ? 'Ativo' : 'Inativo';
+            foreach ($enterprises as $key => $value) {
+                $status = ($value['ativo'] === true || $value['ativo'] === 1) ? 'Ativo' : 'Inativo';
 
                 $id = (int) $value['id'];
                 $rows[$key] = [
                     $id,
-                    $value['nome_fantasia'] ?? '',
-                    $value['cpf_cnpj'] ?? '',
+                    $value['nomeExibicao'] ?? '',
+                    $value['cnpj'] ?? '',
                     $status,
                     "<td>
-                        <a class='btn btn-sm btn-warning' href='/fornecedor/detalhes/{$id}'> <i class='fa-solid fa-pen-to-square'></i> Editar</a>
+                        <a class='btn btn-sm btn-warning' href='/enterprise/detalhes/{$id}'> <i class='fa-solid fa-pen-to-square'></i> Editar</a>
                         <button type='button' class='btn btn-sm btn-danger' onclick='ShowModal({$id});'> <i class='fa-solid fa-trash'></i> Excluir</button>
                     </td>",
                 ];

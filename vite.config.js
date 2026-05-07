@@ -43,7 +43,7 @@ export default defineConfig(({ command }) => ({
         sourcemap: false,
         cssCodeSplit: true,
         rolldownOptions: {
-            input: {D
+            input: {
                 style: resolve(__dirname, 'resources/css/app.css'),
                 app: resolve(__dirname, 'resources/js/app.js'),
                 // CSS como entry INDEPENDENTE — não acoplado ao JS
@@ -52,7 +52,10 @@ export default defineConfig(({ command }) => ({
                 app: resolve(__dirname, 'resources/js/app.js'),
                 // Entries por página
                 'pages/customer': resolve(__dirname, 'resources/js/pages/customer.js'),
-                'pages/list-customer': resolve(__dirname, 'resources/js/pages/list-customer.js')
+                'pages/list-customer': resolve(__dirname, 'resources/js/pages/list-customer.js'),
+                'pages/user': resolve(__dirname, 'resources/js/pages/user.js'),
+                'pages/list-user': resolve(__dirname, 'resources/js/pages/list-user.js')
+
             },
             output: {
                 entryFileNames: '[name]-[hash].js',

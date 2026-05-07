@@ -1,8 +1,8 @@
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="m-0">Lista de Fornecedores</h4>
-            <a href="/fornecedor/detalhes" class="btn btn-primary">
+            <h4 class="m-0">Lista de Empresas</h4>
+            <a href="/enterprise/detalhes" class="btn btn-primary">
                 <i class="fa-solid fa-plus"></i>
                 Novo
             </a>
@@ -15,8 +15,8 @@
                         <thead>
                             <tr>
                                 <th style="width: 80px;">ID</th>
-                                <th>Nome Fantasia</th>
-                                <th>CPF/CNPJ</th>
+                                <th>Nome</th>
+                                <th style="width: 140px;">CNPJ</th>
                                 <th style="width: 120px;">Status</th>
                                 <th style="width: 160px;">Ações</th>
                             </tr>
@@ -28,4 +28,9 @@
     </div>
 </div>
 
-<script src="/assets/pages/list-supplier.js?v={{ random() }}"></script>
+{% endblock %}
+
+{% block script %}
+{{ vite('resources/js/pages/list-enterprise.js') }}
+
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'layouts/main.html' %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb float-sm-end">
+    <li class="breadcrumb-item"><a href="/">Início</a></li>
+    <li class="breadcrumb-item"><a href="/fornecedor/lista">Lista de fornecedores</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Detalhes do fornecedor</li>
+</ol>
+{% endblock %}
+
+{% block main %}
+<form id="form">
+    <input type="hidden" id="action" name="action" value="{{action}}">
+    <input type="hidden" id="id" name="id" value="{{id}}">
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center gap-2">
+                    <a href="/fornecedor/lista" class="btn btn-warning">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Voltar
+                    </a>
+                    <a href="/enterprise/lista" class="btn btn-primary">
+                        <i class="fa-solid fa-building"></i>
+                        Ir para empresas
+                    </a>
+                </div>
+
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6">
+                            <div class="form-floating mb-3">
+                                <input autofocus type="text" class="form-control" id="nome_fantasia"
+                                       name="nome_fantasia" placeholder="Nome fantasia" value="{{supplier.nome_fantasia}}" required>
+                                <label for="nome_fantasia">Nome fantasia</label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="cpf_cnpj"
+                                       name="cpf_cnpj" placeholder="CPF ou CNPJ" value="{{supplier.cpf_cnpj}}" required>
+                                <label for="cpf_cnpj">CPF/CNPJ</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="razao_social"
+                                       name="razao_social" placeholder="Razão social" value="{{supplier.razao_social}}" required>
+                                <label for="razao_social">Razão social</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="inscricao_estadual"
+                                       name="inscricao_estadual" placeholder="Inscrição estadual" value="{{supplier.inscricao_estadual}}" >
+                                <label for="inscricao_estadual">Inscrição estadual</label>
+                            </div>
+                        </div>
+
+                        {# Campos opcionais (caso suas tabelas/JS não usem, não quebra) #}
+                        <div class="col-lg-6 col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="enterprise_id"
+                                       name="enterprise_id" placeholder="Enterprise ID" value="{{supplier.enterprise_id}}" >
+                                <label for="enterprise_id">Enterprise ID</label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="address_id"
+                                       name="address_id" placeholder="Address ID" value="{{supplier.address_id}}" >
+                                <label for="address_id">Address ID</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="icheck-primary d-inline">
+                                <input class="form-check-label" type="checkbox" id="active" name="active" value="true" {% if supplier.active==1 %} checked {% endif %}>
+                                <label for="active">Ativo?</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button id="insert" type="button" class="btn btn-success">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Salvar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block script %}
+{{ vite('resources/js/pages/supplier.js') }}
+{% endblock %}
+
