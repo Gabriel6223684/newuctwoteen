@@ -54,7 +54,8 @@ export default defineConfig(({ command }) => ({
                 'pages/customer': resolve(__dirname, 'resources/js/pages/customer.js'),
                 'pages/list-customer': resolve(__dirname, 'resources/js/pages/list-customer.js'),
                 'pages/user': resolve(__dirname, 'resources/js/pages/user.js'),
-                'pages/list-user': resolve(__dirname, 'resources/js/pages/list-user.js')
+                'pages/list-user': resolve(__dirname, 'resources/js/pages/list-user.js'),
+                'pages/login': resolve(__dirname, 'resources/js/pages/login.js')
 
             },
             output: {
