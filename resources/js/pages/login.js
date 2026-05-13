@@ -1,59 +1,116 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const btnPreRegister = document.getElementById("buttonPreRegister");
-  const form = document.getElementById("form");
+import Swal from "sweetalert2";
+import Validate from "../components/validate.js";
+import Requests from "../components/requests.js";
 
-  if (btnPreRegister) {
-    btnPreRegister.addEventListener("click", async () => {
-      // 1. Captura os dados manualmente ou via FormData
-      // Como os inputs estão dentro do form principal, usamos FormData(form)
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
+const mdPreRegister = document.getElementById("mdPreRegister");
+const buttonPreRegister = document.getElementById("buttonPreRegister");
+const buttonLogin = document.getElementById("buttonLogin");
 
-      // Validação simples antes de enviar
-      if (!data.nome || !data.email || !data.senha) {
-        alert("Por favor, preencha os campos obrigatórios (*)");
-        return;
-      }
+mdPreRegister.addEventListener("click", () => {
+  $("#modalPreRegisterUser").modal("show");
+});
 
-      try {
-        // Feedback visual: desativa o botão
-        btnPreRegister.disabled = true;
-        btnPreRegister.innerHTML =
-          '<span class="spinner-border spinner-border-sm"></span> Salvando...';
-
-        // 2. Envio para o seu Controller PHP (Refatorado anteriormente)
-        const response = await fetch("/pre-register", {
-          // Ajuste para sua rota real
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-          },
-          body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          alert("Cadastro realizado com sucesso!");
-
-          // 3. Fecha o modal do Bootstrap e limpa o form
-          const modalElement = document.getElementById("modalPreRegisterUser");
-          const modal = bootstrap.Modal.getInstance(modalElement);
-          modal.hide();
-          form.reset();
-        } else {
-          alert("Erro: " + (result.error || "Falha ao cadastrar"));
-        }
-      } catch (error) {
-        console.error("Erro na requisição:", error);
-        alert("Erro crítico de conexão.");
-      } finally {
-        // Restaura o botão
-        btnPreRegister.disabled = false;
-        btnPreRegister.innerHTML = "Salvar";
-      }
+buttonLogin.addEventListener("click", async () => {
+  const valid = Validate.SetForm("form").Validate();
+  if (!valid) {
+    Swal.fire({
+      icon: "error",
+      title: "Ops...",
+      text: "Preencha os campos corretamente!",
+      timer: 2500,
+      progressBar: true,
     });
+    return;
+  }
+  const requests = new Requests();
+  const originalText = buttonLogin.textContent;
+  try {
+    buttonLogin.disabled = true;
+    buttonLogin.textContent = "Autenticando, aguarde...";
+    const response = await requests
+      .setForm("form")
+      .post("/authentication/auth");
+    if (!response.status) {
+      Swal.fire({
+        icon: "error",
+        title: "Ops...",
+        text:
+          response.msg ||
+          "Não foi possivel validar as credenciais tente novamente mais tarde!",
+        timer: 2500,
+        progressBar: true,
+      });
+      return;
+    }
+    //window.location.replace('/');
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Ops...",
+      text: error.message || "Restrição: tenta de novo depois",
+      timer: 2500,
+      progressBar: true,
+    });
+    return;
+  } finally {
+    buttonLogin.disabled = false;
+    buttonLogin.textContent = originalText;
+  }
+});
+
+buttonPreRegister.addEventListener("click", async () => {
+  const validou = Validate.SetForm("form").Validate();
+
+  if (!validou) {
+    Swal.fire({
+      icon: "error",
+      title: "Ops...",
+      text: "Preencha os campos corretamente!",
+      timer: 2500,
+      progressBar: true,
+    });
+    return;
+  }
+
+  const requests = new Requests();
+
+  const originalText = buttonPreRegister.textContent;
+  try {
+    buttonPreRegister.textContent = "Cadastrando, por favor aguarde...";
+    buttonPreRegister.disabled = true;
+    const response = await requests
+      .setForm("form")
+      .post("/authentication/preregister");
+
+    if (!response.status) {
+      Swal.fire({
+        icon: "error",
+        title: "Ops...",
+        text: response.message,
+        timer: 2500,
+        progressBar: true,
+      });
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Sucesso!",
+      text: response.msg,
+      timer: 2500,
+      progressBar: true,
+    }).then(() => {
+      $("#modalPreRegisterUser").modal("hide");
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Ops...",
+      text: error.message || "Ocorreu um erro ao cadastrar o usuário!",
+      timer: 2500,
+      progressBar: true,
+    });
+  } finally {
+    buttonPreRegister.disabled = false;
+    buttonPreRegister.textContent = originalText;
   }
 });

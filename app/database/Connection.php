@@ -17,7 +17,7 @@ final class Connection
 
         self::$instance = DriverManager::getConnection([
             'driver'   => 'pdo_pgsql',
-'host'     => $_ENV['DB_HOST'] ?? 'postgres',
+            'host'     => $_ENV['DB_HOST'] ?? 'postgres',
             'port'     => (int) ($_ENV['DB_PORT'] ?? 5432),
             'dbname'   => $_ENV['DB_NAME'] ?? 'development_db',
             'user'     => $_ENV['DB_USER'] ?? 'senac',
