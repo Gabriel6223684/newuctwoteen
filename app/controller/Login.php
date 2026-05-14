@@ -219,19 +219,32 @@ final class Login extends Base
             throw new \InvalidArgumentException('Credential do Google ausente');
         }
 
-        var_dump($google_client_id);
-        $client = new \Google\Client(['client_id' => $google_client_id]);
-
         try {
-            $payload = $client->verifyIdToken($credential);
-            # Dados do usuário extraídos do payload validado
-            $google_id   = $payload['sub'];                                                    // ID único do Google (immutable)
-            $email       = $payload['email'];
-            $given_name  = $payload['given_name']  ?? '';                                      // Nome
-            $family_name = $payload['family_name'] ?? '';                                      // Sobrenome
-            $full_name   = $payload['name']        ?? trim("{$given_name} {$family_name}");    // Nome completo (fallback)
-            $picture_url = $payload['picture']     ?? null;
 
+
+            $provider = new \League\OAuth2\Client\Provider\Google([
+                'clientId'     => $google_client_id,
+                'clientSecret' => '',
+                'redirectUri'  => '',
+            ]);
+
+            $httpResponse = $provider->getHttpClient()->request(
+                'GET',
+                'https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($credential),
+                ['timeout' => 3, 'connect_timeout' => 2]
+            );
+
+            $claims = json_decode((string) $httpResponse->getBody(), true, flags: JSON_THROW_ON_ERROR);
+
+            $nome = $claims['given_name'];
+            $sobrenome = $claims['family_name'];
+            $nomecompleto = $claims['name'];
+            $email = $claims['email'];
+            $foto = $claims['picture'];
+
+
+            echo "<pre>";
+            var_dump($nome, $sobrenome, $nomecompleto, $email, $foto);
             # Atividade anterior dia 14-05-2026
 
             # 1. Finalizar o processo de autenticação 
