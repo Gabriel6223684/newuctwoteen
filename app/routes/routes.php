@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-/** @var \Slim\App $app */
 
 $app->get('/', app\controller\Home::class . ':home')->add(app\middleware\Middleware::web());
 $app->get('/home', app\controller\Home::class . ':home')->add(app\middleware\Middleware::web());
