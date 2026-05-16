@@ -7,7 +7,7 @@
 /docker/redis/storage
 .env
 # Node.js / Vite
-/node_modules
+/node_module
 # Arquivo sentinela do dev server (nunca versionar)
 /public/hot
 # Build output do Vite — gerado pelo CI/CD a partir de resources/
