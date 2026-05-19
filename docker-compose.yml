@@ -61,15 +61,7 @@ services:
     # Verificação periódica de que o servidor responde
     healthcheck:
       # Faz HEAD na raiz e considera saudável se responder
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost/",
-        ]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/" ]
       # Intervalo entre verificações
       interval: 30s
       # Tempo máximo aguardando resposta
@@ -228,7 +220,7 @@ services:
     # Healthcheck na porta TCP do PHP-FPM
     healthcheck:
       # Testa se a porta 9000 aceita conexão
-      test: ["CMD-SHELL", "nc -z localhost 9000 || exit 1"]
+      test: [ "CMD-SHELL", "nc -z localhost 9000 || exit 1" ]
       # Intervalo entre verificações
       interval: 30s
       # Tempo máximo aguardando resposta
@@ -277,11 +269,7 @@ services:
     # Healthcheck do Redis usando ping autenticado
     healthcheck:
       # Confirma que o servidor responde PONG
-      test:
-        [
-          "CMD-SHELL",
-          'redis-cli -h 127.0.0.1 -p 6379 -a "$${REDIS_PASSWORD}" ping | grep PONG || exit 1',
-        ]
+      test: [ "CMD-SHELL", 'redis-cli -h 127.0.0.1 -p 6379 -a "$${REDIS_PASSWORD}" ping | grep PONG || exit 1' ]
       # Intervalo entre verificações
       interval: 5s
       # Tempo máximo aguardando resposta
@@ -383,7 +371,7 @@ services:
     # Healthcheck usando o utilitário nativo do PostgreSQL
     healthcheck:
       # Confirma que o banco aceita conexões
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       # Intervalo entre verificações
       interval: 30s
       # Tempo máximo aguardando resposta
