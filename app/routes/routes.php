@@ -10,6 +10,7 @@ $app->group('/authentication', function (Slim\Routing\RouteCollectorProxy $group
     $group->post('/google', app\controller\Login::class . ':google');
     $group->post('/auth', app\controller\Login::class . ':authenticate');
     $group->post('/preregister', app\controller\Login::class . ':preRegister');
+    $group->get('/logout', app\controller\Login::class . ':logout');
 });
 
 $app->group('/pais', function (Slim\Routing\RouteCollectorProxy $group) {

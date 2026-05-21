@@ -193,10 +193,10 @@ final class Login extends Base
         $credential = $form['credential'] ?? null;
         $form_g_csrf_token = $form['g_csrf_token'] ?? null;
         $cookie_g_csrf_token = $_COOKIE['g_csrf_token'] ?? null;
-        $google_client_id = $_ENV['1035137357681-gbar9dnv0i31dfdbre6t2uiitq0jf926.apps.googleusercontent.com'] ?? null;
+        $google_client_id = $_ENV['GOOGLE_CLIENT_ID'] ?? null;
 
         if (is_null($credential) || is_null($form_g_csrf_token) || is_null($cookie_g_csrf_token)) {
-            return $this->json($response, ['status' => false, 'msg' => 'Token de validação CSRF ou credencial ausente.'], 400);
+            return $this->json($response, ['status' => false, 'msg' => 'Credential do Google ausente', 'id' => 0], 400);
         }
 
         try {
@@ -213,38 +213,63 @@ final class Login extends Base
             );
 
             $claims = json_decode((string) $httpResponse->getBody(), true, flags: JSON_THROW_ON_ERROR);
-            $email = $claims['email'] ?? null;
 
-            if (!$email) {
-                return $this->json($response, ['status' => false, 'msg' => 'Não foi possível recuperar o email da conta Google.'], 400);
+            $nome = (string) ($claims['given_name'] ?? '');
+            $sobrenome = (string) ($claims['family_name'] ?? '');
+            $email = (string) ($claims['email'] ?? '');
+            $google_id = (string) ($claims['sub'] ?? '');
+
+            if ($email === '') {
+                return $this->json($response, ['status' => false, 'msg' => 'E-mail não informado na resposta do Google', 'id' => 0], 400);
             }
 
-            # 1. Recuperar os dados do usuário com base no e-mail
-            $qb = \app\database\DB::select('*')->from('vw_user');
+            // 1) Encontrar usuário existente via contact (EMAIL)
+            $qb = \app\database\DB::select('*')
+                ->from('vw_user');
+
             $placeholder = $qb->createNamedParameter($email);
-            $qb->where('email = ' . $placeholder);
-            $user = $qb->fetchAssociative();
+            $user = $qb->where('email = ' . $placeholder)->fetchAssociative();
 
-            # Se não retornar dados, o usuário não existe no sistema
             if (!$user) {
-                return $this->json($response, ['status' => false, 'msg' => 'Usuário não encontrado no sistema. Por favor, faça o cadastro.'], 404);
+                // 2) Se não existir: inserir em users + contact(EMAIL)
+                $dummyHash = '$2y$10$CwTycUXWue0Thq9StjUM0uJ8.k3.kK1m3Sv7lJ1uG9N9Yvb.MqYsa';
+
+                $DataUser = [
+                    'nome'          => $nome,
+                    'sobrenome'     => $sobrenome,
+                    'cpf'           => '',
+                    'rg'            => '',
+                    'senha'         => $dummyHash,
+                    'ativo'         => 'false',
+                    'administrador' => 'false',
+                ];
+
+
+                \app\database\DB::connection()->insert('users', $DataUser);
+                $userId = \app\database\DB::connection()->lastInsertId();
+
+                $DataEmail = [
+                    'id_usuario' => $userId,
+                    'tipo' => 'EMAIL',
+                    'contato' => $email,
+                ];
+                \app\database\DB::connection()->insert('contact', $DataEmail);
+
+                return $response
+                    ->withHeader('Location', '/login')
+                    ->withStatus(302);
             }
 
-            # Se retornar dados, verifica se o usuário está ativo (aceitando variações como 1/0, true/false ou string)
-            $isAtivo = $user['ativo'] ?? false;
-            if ($isAtivo === false || $isAtivo === 0 || $isAtivo === '0' || $isAtivo === 'false') {
+            if (!$user['ativo']) {
                 return $this->json($response, [
                     'status' => false,
-                    'msg' => 'Por enquanto você ainda não está autorizado, por favor aguarde...'
+                    'msg' => 'Por enquanto você ainda não está autorizado, aguarde liberação',
+                    'id' => $user['id']
                 ], 403);
             }
-
-            # Caso esteja ativo, cria os dados da sessão do usuário (Idêntico ao método authenticate)
+            // 3) Login: seguir o mesmo fluxo do authenticate()
+            unset($_SESSION['login_attempts'], $_SESSION['login_locked_until']);
             session_regenerate_id(true);
-            unset($user['senha']);
-
-            $_SESSION['user'] = $user;
-            $_SESSION['user']['logado'] = true;
 
             $lifetime = (int) (ini_get('session.gc_maxlifetime') ?: 3600);
             $now = time();
@@ -255,40 +280,42 @@ final class Login extends Base
                 'nbf' => $now,
                 'exp' => $now + $lifetime,
                 'sub' => (string) $user['id'],
-                'iss' => HOST,
-                'aud' => HOST,
-                'jti' => $jti,
+                'jti' => $jti
             ];
 
             $jwt = \Firebase\JWT\JWT::encode($payload, SECRET_KEY, 'HS256');
-            $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443;
+
 
             setcookie('auth_token', $jwt, [
                 'expires'  => time() + $lifetime,
                 'path'     => '/',
-                'domain'   => HOST,
-                'secure'   => $isSecure,
                 'httponly' => true,
-                'samesite' => 'Lax',
+                'samesite' => 'Lax'
             ]);
+
+            $_SESSION['user'] = $user;
+            $_SESSION['user']['logado'] = true;
 
             $agora = (new \DateTimeImmutable())->setTimestamp($now);
             $_SESSION['user']['sessao_criada_em'] = $agora->format('Y-m-d H:i:s');
             $_SESSION['user']['sessao_expira_em'] = $agora->modify("+{$lifetime} seconds")->format('Y-m-d H:i:s');
 
-            # Retorna redirecionamento ou sinaliza sucesso para o front-end mover para /home ou /adm
-            return $this->json($response, [
-                'status' => true,
-                'msg'    => 'Autenticação via Google realizada com sucesso!',
-                'url'    => '/home' # Defina a rota padrão desejada aqui
-            ], 200);
+            return $response
+                ->withHeader('Location', '/home')
+                ->withStatus(302);
+        } catch (\PDOException $e) {
+            error_log('[google][DB] ' . $e->getMessage());
+            return $this->json($response, ['status' => false, 'msg' => 'Erro ao consultar/gravar usuário', 'id' => 0], 500);
+        } catch (\UnexpectedValueException | \DomainException $e) {
+            error_log('[google][JWT/VAL] ' . $e->getMessage());
+            return $this->json($response, ['status' => false, 'msg' => 'Falha ao processar autenticação do Google', 'id' => 0], 500);
         } catch (\Throwable $e) {
-            error_log('[auth][GOOGLE] ' . $e->getMessage());
-            return $this->json($response, ['status' => false, 'msg' => 'Falha na verificação com o Google. Tente novamente.'], 500);
+            error_log('[google][GERAL] ' . $e->getMessage());
+            return $this->json($response, ['status' => false, 'msg' => 'Erro inesperado na autenticação Google: ' . $e->getMessage(), 'id' => 0], 500);
         }
     }
 
-    # 2. Opção de sair do sistema (Logout)
+
     public function logout($request, $response)
     {
         # Limpa os dados do array da sessão global
