@@ -1,0 +1,34 @@
+# 🚀 Newuctwoteen
+
+Uma aplicação web/API moderna construída em PHP utilizando o micro-framework **Slim 4**. O projeto segue as melhores práticas de desenvolvimento, contando com arquitetura baseada no padrão PSR-4, autenticação segura, testes automatizados e análise estática de código.
+
+---
+
+## 🛠️ Tecnologias e Dependências
+
+### Core do Projeto
+* **Framework:** [Slim Framework 4](https://www.slimframework.com/) (Roteamento leve e veloz)
+* **Template Engine:** [Twig](https://twig.symfony.com/) (via Slim Twig-View)
+* **Banco de Dados & Migrations:** [Doctrine DBAL & Migrations](https://www.doctrine-project.org/)
+* **Segurança & Autenticação:** Firebase JWT & League OAuth2 (com suporte para Login do Google)
+* **Gerenciamento de Ambiente:** PHP dotenv
+
+### Qualidade de Código & Testes (Dev)
+* **Testes Automatizados:** [Pest PHP](https://pestphp.com/) (Framework de testes focado em simplicidade)
+* **Análise Estática:** [PHPStan](https://phpstan.org/) (Nível avançado de checagem de tipos)
+* **Formatação de Código:** [Laravel Pint](https://laravel.com/docs/pint) (Linter opinativo para PHP)
+* **Mocks e Dados Falsos:** Mockery & FakerPHP
+
+---
+
+## 📦 Como Configurar e Executar o Projeto
+
+### Pré-requisitos
+* PHP 8.2 ou superior instalado localmente
+* [Composer](https://getcomposer.org/)
+
+### Passo a Passo
+
+1. **Clone o repositório:**
+   ```bash
+   git clone [https://github.com/Gabriel6223684/newuctwoteen.git](https://github.com/Gabriel6223684/newuctwoteen.git)
