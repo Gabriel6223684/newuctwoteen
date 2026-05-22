@@ -1,34 +1,28 @@
-# 🚀 Newuctwoteen
+Técnicas de Teste de Software
+Repositório de apoio à aula Técnicas de Teste de Software, preparado para apresentação aos alunos do Senac.
+O projeto demonstra, de forma prática, a aplicação de testes automatizados em uma aplicação PHP moderna, utilizando ambiente containerizado, banco de dados relacional e pipeline de integração e deploy automatizado.
 
-Uma aplicação web/API moderna construída em PHP utilizando o micro-framework **Slim 4**. O projeto segue as melhores práticas de desenvolvimento, contando com arquitetura baseada no padrão PSR-4, autenticação segura, testes automatizados e análise estática de código.
+Objetivo
+Este repositório tem como finalidade servir como base didática para o estudo e demonstração de:
 
----
+fundamentos de testes de software
+testes automatizados em aplicações PHP
+organização de ambiente com Docker
+integração com banco de dados PostgreSQL
+execução de testes com Pest
+automação de validação e deploy com GitHub Actions
+Stack Tecnológica
+PHP 8.5
+PostgreSQL 18.3
+Docker
+Pest PHP
+GitHub Actions
+Estrutura do Projeto
+Este ambiente foi planejado para fornecer uma base reprodutível e próxima de um cenário real de desenvolvimento, permitindo aos participantes executar a aplicação, rodar testes automatizados e compreender como práticas de qualidade de software podem ser integradas ao fluxo de entrega.
 
-## 🛠️ Tecnologias e Dependências
+Badges
+PHP PostgreSQL Docker Pest GitHub Actions
 
-### Core do Projeto
-* **Framework:** [Slim Framework 4](https://www.slimframework.com/) (Roteamento leve e veloz)
-* **Template Engine:** [Twig](https://twig.symfony.com/) (via Slim Twig-View)
-* **Banco de Dados & Migrations:** [Doctrine DBAL & Migrations](https://www.doctrine-project.org/)
-* **Segurança & Autenticação:** Firebase JWT & League OAuth2 (com suporte para Login do Google)
-* **Gerenciamento de Ambiente:** PHP dotenv
-
-### Qualidade de Código & Testes (Dev)
-* **Testes Automatizados:** [Pest PHP](https://pestphp.com/) (Framework de testes focado em simplicidade)
-* **Análise Estática:** [PHPStan](https://phpstan.org/) (Nível avançado de checagem de tipos)
-* **Formatação de Código:** [Laravel Pint](https://laravel.com/docs/pint) (Linter opinativo para PHP)
-* **Mocks e Dados Falsos:** Mockery & FakerPHP
-
----
-
-## 📦 Como Configurar e Executar o Projeto
-
-### Pré-requisitos
-* PHP 8.2 ou superior instalado localmente
-* [Composer](https://getcomposer.org/)
-
-### Passo a Passo
-
-1. **Clone o repositório:**
-   ```bash
-   git clone [https://github.com/Gabriel6223684/newuctwoteen.git](https://github.com/Gabriel6223684/newuctwoteen.git)
+Como executar o projeto
+Subir o ambiente com Docker
+docker compose up -d
