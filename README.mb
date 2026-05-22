@@ -4,19 +4,20 @@ O projeto demonstra, de forma prática, a aplicação de testes automatizados em
 
 Objetivo
 Este repositório tem como finalidade servir como base didática para o estudo e demonstração de:
-
 fundamentos de testes de software
 testes automatizados em aplicações PHP
 organização de ambiente com Docker
 integração com banco de dados PostgreSQL
 execução de testes com Pest
 automação de validação e deploy com GitHub Actions
+
 Stack Tecnológica
 PHP 8.5
 PostgreSQL 18.3
 Docker
 Pest PHP
 GitHub Actions
+
 Estrutura do Projeto
 Este ambiente foi planejado para fornecer uma base reprodutível e próxima de um cenário real de desenvolvimento, permitindo aos participantes executar a aplicação, rodar testes automatizados e compreender como práticas de qualidade de software podem ser integradas ao fluxo de entrega.
 
@@ -24,5 +25,7 @@ Badges
 PHP PostgreSQL Docker Pest GitHub Actions
 
 Como executar o projeto
+
 Subir o ambiente com Docker
+
 docker compose up -d
