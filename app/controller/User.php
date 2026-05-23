@@ -147,10 +147,8 @@ final class User extends Base
                     $value['name'],
                     $value['email'],
                     $status,
-                    "<td>
-                    <a class='btn btn-sm btn-warning' href='/usuario/detalhes/" . $value['id'] . "'> <i class='fa-solid fa-pen-to-square'></i> Editar</a>
-                    <button type='button' class='btn btn-sm btn-danger' onclick='ShowModal(" . $value['id'] . ");'> <i class='fa-solid fa-trash'></i> Excluir</button>
-                </td>",
+                    "<a class='btn btn-sm btn-warning' href='/usuario/detalhes/" . $value['id'] . "'> <i class='fa-solid fa-pen-to-square'></i> Editar</a>"
+                    . " <button type='button' class='btn btn-sm btn-danger' onclick='ShowModal(" . $value['id'] . ");'> <i class='fa-solid fa-trash'></i> Excluir</button>",
                 ];
             }
 
@@ -158,6 +156,14 @@ final class User extends Base
                 'recordsTotal' => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
                 'data' => $rows,
+                // debug
+                // 'debug' => [
+                //     'term' => $term,
+                //     'start' => $start,
+                //     'length' => $length,
+                //     'orderField' => $orderField,
+                //     'orderType' => $orderType,
+                // ],
             ], 200);
         } catch (\Exception $e) {
             return $this->json($response, [
