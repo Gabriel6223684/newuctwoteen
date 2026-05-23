@@ -101,6 +101,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script src="/assets/pages/list-user.js?v={{ random() }}"></script>
+{% block script %}
+{{ vite('resources/js/pages/list-user.js') }}
 {% endblock %}

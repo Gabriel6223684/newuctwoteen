@@ -69,9 +69,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Input masks
-    Inputmask({ 
-        mask: "999.999.999-99", 
-        placeholder: "*" 
-    }).mask('#numeroDocumento');
+    const numeroDocumentoEl = document.getElementById('numeroDocumento');
+    if (numeroDocumentoEl) {
+        Inputmask({
+            mask: "999.999.999-99",
+            placeholder: "*"
+        }).mask('#numeroDocumento');
+    }
 });
+
 

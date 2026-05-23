@@ -51,7 +51,8 @@ final class Country extends Base
             if (!$IsInserted) {
                 return $this->json($response, ['status' => false, 'msg' => 'Erro ao inserir', 'id' => 0], 500);
             }
-            $id = \app\database\DB::select('id')->from('countries')->orderBy('id', 'DESC')->fetchOne();
+            $id = \app\database\DB::select('id')->from('countries')->orderBy('id', 'DESC')->fetchOne(0);
+
 
             return $this->json($response, ['status' => true, 'msg' => 'Salvo com sucesso!', 'id' => $id], 201);
         } catch (\Exception $e) {

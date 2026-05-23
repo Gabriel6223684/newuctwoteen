@@ -21,13 +21,16 @@ final class User extends Base
         $id = $args['id'] ?? null;
         $action = ($id === null) ? 'c' : 'e';
         $user = [];
-        if (!is_null($id)) {
-            $qb = \app\database\DB::select('*')->from('users');
 
+        if (!is_null($id)) {
+            $qb = \app\database\DB::select('*')->from('vw_user');
             $user = $qb
                 ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
+
         }
+
+
         return $this->getTwig()
             ->render($response, $this->setView('user'), [
                 'titulo' => 'Detalhes do usuário',
@@ -42,20 +45,43 @@ final class User extends Base
     public function insert($request, $response)
     {
         $form = $request->getParsedBody();
-        $FieldsAndValues = [
-            'name' => $form['name'],
-            'email' => $form['email'],
-            'password' => password_hash($form['password'], PASSWORD_DEFAULT),
-            'active' => 1
-        ];
+
+        $nomeCompleto = trim((string) ($form['name'] ?? ''));
+        $email = trim((string) ($form['email'] ?? ''));
+        $password = (string) ($form['password'] ?? '');
+        $active = !empty($form['active']) ? 1 : 0;
+
+        if ($nomeCompleto === '' || $email === '' || $password === '') {
+            return $this->json($response, ['status' => false, 'msg' => 'Nome, email e senha são obrigatórios.', 'id' => 0], 400);
+        }
+
         try {
+            $FieldsAndValues = [
+                'nome' => $nomeCompleto,
+                'sobrenome' => '',
+                'cpf' => '',
+                'rg' => '',
+                'senha' => password_hash($password, PASSWORD_DEFAULT),
+                'ativo' => (bool) $active,
+                'administrador' => false,
+            ];
+
             $IsInserted = \app\database\DB::connection()->insert('users', $FieldsAndValues);
             if (!$IsInserted) {
                 return $this->json($response, ['status' => false, 'msg' => 'Erro ao inserir', 'id' => 0], 500);
             }
-            $id = \app\database\DB::select('id')->from('users')->orderBy('id', 'DESC')->fetchOne(0);
 
-            return $this->json($response, ['status' => true, 'msg' => 'Salvo com sucesso!', 'id' => $id], 201);
+            $id = \app\database\DB::connection()->lastInsertId();
+
+            // Email fica na tabela contact (tipo EMAIL)
+            $DataEmail = [
+                'id_usuario' => $id,
+                'tipo' => 'EMAIL',
+                'contato' => $email
+            ];
+            \app\database\DB::connection()->insert('contact', $DataEmail);
+
+            return $this->json($response, ['status' => true, 'msg' => 'Salvo com sucesso!', 'id' => (int) $id], 201);
         } catch (\Exception $e) {
             return $this->json($response, ['status' => false, 'msg' => $e->getMessage(), 'id' => 0], 500);
         }
@@ -65,19 +91,49 @@ final class User extends Base
     {
         $form = $request->getParsedBody();
         $id = $form['id'] ?? null;
+
         if (is_null($id)) {
             return $this->json($response, ['status' => false, 'msg' => 'ID obrigatório', 'id' => 0], 403);
         }
-        $FieldsAndValues = [
-            'name' => $form['name'],
-            'email' => $form['email']
-        ];
-        if (!empty($form['password'])) {
-            $FieldsAndValues['password'] = password_hash($form['password'], PASSWORD_DEFAULT);
+
+        $nomeCompleto = trim((string) ($form['name'] ?? ''));
+        $email = trim((string) ($form['email'] ?? ''));
+        $password = (string) ($form['password'] ?? '');
+        $active = !empty($form['active']) ? 1 : 0;
+
+        if ($nomeCompleto === '' || $email === '') {
+            return $this->json($response, ['status' => false, 'msg' => 'Nome e email são obrigatórios.', 'id' => 0], 400);
         }
+
         try {
-            $IsUpdated = \app\database\DB::connection()->update('users', $FieldsAndValues, ['id' => $id]);
-            return $this->json($response, ['status' => true, 'msg' => 'Atualizado!', 'id' => $id], 201);
+            $FieldsAndValues = [
+                'nome' => $nomeCompleto,
+                'ativo' => (bool) $active,
+            ];
+
+            if ($password !== '') {
+                $FieldsAndValues['senha'] = password_hash($password, PASSWORD_DEFAULT);
+            }
+
+            \app\database\DB::connection()->update('users', $FieldsAndValues, ['id' => $id]);
+
+            // Atualiza o contato do email (contact.tipo = EMAIL)
+            $updated = \app\database\DB::connection()->update(
+                'contact',
+                ['contato' => $email],
+                ['id_usuario' => $id, 'tipo' => 'EMAIL']
+            );
+
+            // Se não existir registro de email, insere
+            if (!$updated) {
+                \app\database\DB::connection()->insert('contact', [
+                    'id_usuario' => $id,
+                    'tipo' => 'EMAIL',
+                    'contato' => $email
+                ]);
+            }
+
+            return $this->json($response, ['status' => true, 'msg' => 'Atualizado!', 'id' => (int) $id], 201);
         } catch (\Exception $e) {
             return $this->json($response, ['status' => false, 'msg' => $e->getMessage(), 'id' => 0], 500);
         }
@@ -87,12 +143,14 @@ final class User extends Base
     {
         $form = $request->getParsedBody();
         $id = $form['id'] ?? null;
+
         if (is_null($id)) {
             return $this->json($response, ['status' => false, 'msg' => 'ID obrigatório', 'id' => 0], 403);
         }
+
         try {
             \app\database\DB::connection()->delete('users', ['id' => $id]);
-            return $this->json($response, ['status' => true, 'msg' => 'Excluído!', 'id' => $id]);
+            return $this->json($response, ['status' => true, 'msg' => 'Excluído!', 'id' => (int) $id]);
         } catch (\Exception $e) {
             return $this->json($response, ['status' => false, 'msg' => $e->getMessage(), 'id' => $id], 500);
         }
@@ -103,12 +161,13 @@ final class User extends Base
         $form = $request->getParsedBody();
 
         $term   = $form['search']['value'] ?? null;
-        $start  = (int) ($form['start']  ?? 0);
+        $start  = (int) ($form['start'] ?? 0);
         $length = (int) ($form['length'] ?? 10);
 
+        // Colunas do DataTables (índices) -> colunas da view
         $columns = [
             0 => 'id',
-            1 => 'name',
+            1 => 'nome',
             2 => 'email',
         ];
 
@@ -121,13 +180,13 @@ final class User extends Base
         $orderField = $columns[$posField];
 
         try {
-            $totalRecords = (int) \app\database\DB::select('COUNT(*)')->from('users')->fetchOne(0);
+            $totalRecords = (int) \app\database\DB::select('COUNT(*)')->from('vw_user')->fetchOne(0);
 
-            $query = \app\database\DB::select('*')->from('users');
+            $query = \app\database\DB::select('*')->from('vw_user');
 
             if (!is_null($term) && $term !== '') {
                 $query->setParameter('term', '%' . $term . '%');
-                $query->where('name ILIKE :term')
+                $query->where('nome ILIKE :term')
                     ->orWhere('email ILIKE :term');
             }
 
@@ -141,10 +200,11 @@ final class User extends Base
 
             $rows = [];
             foreach ($users as $key => $value) {
-                $status = $value['active'] ? '<span class="badge bg-success">Ativo</span>' : '<span class="badge bg-danger">Inativo</span>';
+                $status = $value['ativo'] ? '<span class="badge bg-success">Ativo</span>' : '<span class="badge bg-danger">Inativo</span>';
+
                 $rows[$key] = [
                     $value['id'],
-                    $value['name'],
+                    $value['nome'],
                     $value['email'],
                     $status,
                     "<a class='btn btn-sm btn-warning' href='/usuario/detalhes/" . $value['id'] . "'> <i class='fa-solid fa-pen-to-square'></i> Editar</a>"
@@ -156,14 +216,6 @@ final class User extends Base
                 'recordsTotal' => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
                 'data' => $rows,
-                // debug
-                // 'debug' => [
-                //     'term' => $term,
-                //     'start' => $start,
-                //     'length' => $length,
-                //     'orderField' => $orderField,
-                //     'orderType' => $orderType,
-                // ],
             ], 200);
         } catch (\Exception $e) {
             return $this->json($response, [
@@ -173,4 +225,5 @@ final class User extends Base
         }
     }
 }
+
 
