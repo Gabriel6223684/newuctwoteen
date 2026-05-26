@@ -18,15 +18,19 @@ final class Version20260522000002 extends AbstractMigration
     {
         $table = $schema->createTable('suppliers');
         $table->addColumn('id',            'bigint',   ['autoincrement' => true]);
-        $table->addColumn('nome_fantasia', 'text',     ['default' => '']); // Para "Nome Fantasia"
-        $table->addColumn('cpf_cnpj',      'text',     ['default' => '']); // Para "CPF/CNPJ" (flexível para ambos)
-        $table->addColumn('ativo',         'boolean',  ['default' => true]);  // Para o "Status"
+        $table->addColumn('enterprise_id', 'bigint',   []); // Relacionamento com a empresa
+        $table->addColumn('nome_fantasia', 'text',     ['default' => '']);
+        $table->addColumn('cpf_cnpj',      'text',     ['default' => '']);
+        $table->addColumn('ativo',         'boolean',  ['default' => true]);
         $table->addColumn('criado_em',     'datetime', ['default' => 'CURRENT_TIMESTAMP']);
         $table->addColumn('atualizado_em', 'datetime', ['default' => 'CURRENT_TIMESTAMP']);
 
         $table->setPrimaryKey(['id']);
-        $table->addUniqueIndex(['cpf_cnpj']);      // Impede duplicidade de um mesmo fornecedor
-        $table->addIndex(['nome_fantasia']);       // Otimiza a busca rápida pelo nome
+
+        // Índices e Chaves Únicas
+        $table->addIndex(['enterprise_id']);               // Otimiza o filtro principal por empresa
+        $table->addIndex(['nome_fantasia']);               // Otimiza a busca rápida pelo nome
+        $table->addUniqueIndex(['enterprise_id', 'cpf_cnpj']); // Impede duplicidade do mesmo fornecedor NA MESMA empresa
     }
 
     public function down(Schema $schema): void

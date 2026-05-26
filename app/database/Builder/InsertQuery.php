@@ -2,54 +2,59 @@
 
 declare(strict_types=1);
 
-namespace App\Database\Builder;
+namespace app\database\Builder;
 
 use App\Database\Connection;
 
-class InsertQuery
+final class InsertQuery
 {
     private string $table;
     private array $fieldsAndValues = [];
+
     public static function insert(string $table): ?self
     {
-        try {
-            $self = new self;
-            $self->table = $table;
-            return $self;
-            /** @phpstan-ignore catch.neverThrown */
-        } catch (\Throwable $e) {
-            throw new \Throwable("Restrição: " . $e->getMessage(), 1);
-        }
+        $self = new self();
+        $self->table = $table;
+        return $self;
     }
+
     private function createQuery(): string
     {
-        if (!$this->table) {
-            throw new \Exception("A consulta precisa invocar o método insert.");
+        if (empty($this->table)) {
+            throw new \Exception('A consulta precisa invocar o método insert.');
         }
-        if (!$this->fieldsAndValues) {
-            throw new \Exception("A consulta precisa dos dados para realizar a inserção.");
+        if (empty($this->fieldsAndValues)) {
+            throw new \Exception('A consulta precisa dos dados para realizar a inserção.');
         }
-        $query = '';
+
+        // Cria uma string com '?' repetidos baseada na quantidade de campos
+        $placeholders = implode(', ', array_fill(0, count($this->fieldsAndValues), '?'));
+
         $query = "insert into {$this->table} (";
         $query .= implode(',', array_keys($this->fieldsAndValues)) . ') values (';
-        $query .= ':' . implode(',:', array_keys($this->fieldsAndValues)) . ');';
+        $query .= $placeholders . ')'; // Removido o ponto e vírgula interno para evitar problemas de sintaxe em algumas versões do driver
+
         return $query;
     }
-    public function executeQuery($query): ?bool
-    {
-        $connection = Connection::connection();
-        $prepare = $connection->prepare($query);
-        return $prepare->execute($this->fieldsAndValues);
-    }
-    public function save(array $fieldsAndValues): ?bool
+
+    /**
+     * Salva o registro e retorna o ID gerado pelo banco de dados.
+     */
+    public function save(array $fieldsAndValues): int
     {
         $this->fieldsAndValues = $fieldsAndValues;
         $query = $this->createQuery();
+
+        $connection = Connection::connection();
+
         try {
-            $IsSave = $this->executeQuery($query);
-            return $IsSave;
-        } catch (\PDOException $e) {
-            throw new \Exception("Restrição: {$e->getMessage()}");
+            // Executa a query e faz o bind de forma atômica diretamente na conexão
+            $connection->executeStatement($query, array_values($this->fieldsAndValues));
+
+            // Captura e retorna o último ID gerado na tabela corrente
+            return (int) $connection->lastInsertId();
+        } catch (\Exception $e) {
+            throw new \Exception('Restrição: ' . $e->getMessage(), 1);
         }
     }
 }

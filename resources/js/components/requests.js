@@ -70,12 +70,32 @@ export default class Requests {
             throw new Error(`Falha de rede ao acessar ${url}`);
         }
         if (!response.ok) {
-            const errorBody = await this.#safeParseJson(response);
-            throw new Error(
-                `HTTP ${response.status} - ${errorBody?.message || response.statusText}`
-            );
+            // ler body mesmo quando 500 para capturar msg/Restrição do backend
+            const text = await response.text();
+            let errorBody = null;
+            try {
+                errorBody = text ? JSON.parse(text) : null;
+            } catch {
+                errorBody = { raw: text };
+            }
+
+            // log útil no console
+            console.log('HTTP error', {
+                url,
+                status: response.status,
+                body: errorBody,
+            });
+
+            const backendMsg =
+                errorBody?.msg ||
+                errorBody?.message ||
+                errorBody?.raw ||
+                response.statusText;
+
+            throw new Error(`HTTP ${response.status} - ${backendMsg}`);
         }
         return this.#safeParseJson(response);
+
     }
     /**
      * Evita erro ao tentar parsear body vazio

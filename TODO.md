@@ -1,13 +1,10 @@
-# TODO - Correção lista de Usuários
+# TODO (testes unitários)
 
-- [x] Entender o formato esperado pelo DataTables (serverSide) e o payload JSON retornado por `User::listingdata()`.
-- [x] Corrigir `User::listingdata()` para ler de `vw_user` (e não de `users`), usando aliases corretos (`nome`, `email`, `ativo`).
+- [ ] Atualizar testes existentes de Enterprise/Suppliers para cobrir mais cenários de insert (sem quebrar padrões).
+- [x] Criar `tests/unit/UserTest.php` cobrindo: insert (sucesso + validação), update (sucesso + falha sem id), delete (sucesso + falha sem id) e limpeza (delete do registro criado).
+- [x] Criar `tests/unit/CountryTest.php` cobrindo insert (sucesso).
+- [x] Criar `tests/unit/CustomerTest.php` (ou `CustomerInsertTest.php`) cobrindo insert (sucesso).
 
-- [x] Corrigir `User::details()` para buscar dados completos via `vw_user`.
-
-- [x] Corrigir `User::insert()` para gravar em `users` usando colunas reais (`nome`, `cpf`, `rg`, `senha`, `ativo`, `administrador`) e gravar o `email` em `contact`.
-- [x] Corrigir `User::update()` para atualizar `users` (nome/senha/ativo) e atualizar o `contact` do tipo EMAIL.
-
-- [ ] Validar rapidamente via `phpunit` (ou ao menos chamar o endpoint `/usuario/listingdata` e conferir JSON).
-
+- [ ] Rodar `composer test` para confirmar que todos passam.
+- [ ] Rodar opcional `composer test:cov` se desejado.
 

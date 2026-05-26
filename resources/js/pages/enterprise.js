@@ -6,8 +6,7 @@ const Id = document.getElementById('id');
 const InsertBtn = document.getElementById('insert');
 
 async function applyChanges() {
-    $('button, input, checkbox').prop('disabled', true);
-
+    // 1. VALIDA PRIMEIRO (com os campos ativos)
     const IsValid = Validate.SetForm('form').Validate();
     if (!IsValid) {
         Swal.fire({
@@ -17,9 +16,12 @@ async function applyChanges() {
             timer: 3000,
             timerProgressBar: true,
         });
-        $('button, input, checkbox').prop('disabled', false);
         return;
     }
+
+    // 2. BLOQUEIA DE FORMA SEGURA (Para não esvaziar os dados da requisição)
+    $('input, select, textarea').prop('readOnly', true);
+    $('button, input[type="checkbox"]').prop('disabled', true);
 
     const requests = new Requests();
 
@@ -36,7 +38,9 @@ async function applyChanges() {
                 timer: 3000,
                 timerProgressBar: true,
             });
-            $('button, input, checkbox').prop('disabled', false);
+            // Reativa em caso de resposta negativa
+            $('input, select, textarea').prop('readOnly', false);
+            $('button, input[type="checkbox"]').prop('disabled', false);
             return;
         }
 
@@ -75,11 +79,12 @@ async function applyChanges() {
             timerProgressBar: true,
         });
     } finally {
-        $('button, input, checkbox').prop('disabled', false);
+        // 3. SEMPRE LIBERA OS CAMPOS NO FINAL
+        $('input, select, textarea').prop('readOnly', false);
+        $('button, input[type="checkbox"]').prop('disabled', false);
     }
 }
 
 InsertBtn?.addEventListener('click', async () => {
     await applyChanges();
 });
-

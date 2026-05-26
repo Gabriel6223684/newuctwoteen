@@ -27,7 +27,6 @@ final class User extends Base
             $user = $qb
                 ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
-
         }
 
 
@@ -57,13 +56,13 @@ final class User extends Base
 
         try {
             $FieldsAndValues = [
-                'nome' => $nomeCompleto,
-                'sobrenome' => '',
-                'cpf' => '',
-                'rg' => '',
-                'senha' => password_hash($password, PASSWORD_DEFAULT),
-                'ativo' => (bool) $active,
-                'administrador' => false,
+                'nome'          => $nomeCompleto,
+                'sobrenome'     => '',
+                'cpf'           => '',
+                'rg'            => '',
+                'senha'         => password_hash($password, PASSWORD_DEFAULT),
+                'ativo'         => $active, // Removido o (bool), mantendo 1 ou 0
+                'administrador' => 0,       // Alterado de false para 0
             ];
 
             $IsInserted = \app\database\DB::connection()->insert('users', $FieldsAndValues);
@@ -76,8 +75,8 @@ final class User extends Base
             // Email fica na tabela contact (tipo EMAIL)
             $DataEmail = [
                 'id_usuario' => $id,
-                'tipo' => 'EMAIL',
-                'contato' => $email
+                'tipo'       => 'EMAIL',
+                'contato'    => $email
             ];
             \app\database\DB::connection()->insert('contact', $DataEmail);
 
@@ -107,8 +106,8 @@ final class User extends Base
 
         try {
             $FieldsAndValues = [
-                'nome' => $nomeCompleto,
-                'ativo' => (bool) $active,
+                'nome'  => $nomeCompleto,
+                'ativo' => $active, // Alterado de (bool) $active para apenas $active (1 ou 0)
             ];
 
             if ($password !== '') {
@@ -208,7 +207,7 @@ final class User extends Base
                     $value['email'],
                     $status,
                     "<a class='btn btn-sm btn-warning' href='/usuario/detalhes/" . $value['id'] . "'> <i class='fa-solid fa-pen-to-square'></i> Editar</a>"
-                    . " <button type='button' class='btn btn-sm btn-danger' onclick='ShowModal(" . $value['id'] . ");'> <i class='fa-solid fa-trash'></i> Excluir</button>",
+                        . " <button type='button' class='btn btn-sm btn-danger' onclick='ShowModal(" . $value['id'] . ");'> <i class='fa-solid fa-trash'></i> Excluir</button>",
                 ];
             }
 
@@ -225,5 +224,3 @@ final class User extends Base
         }
     }
 }
-
-

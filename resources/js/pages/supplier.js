@@ -6,8 +6,7 @@ const Id = document.getElementById('id');
 const InsertBtn = document.getElementById('insert');
 
 async function applyChanges() {
-    $('button, input, checkbox').prop('disabled', true);
-
+    // 1. FAÇA A VALIDAÇÃO PRIMEIRO (Com os campos ainda ativos)
     const IsValid = Validate.SetForm('form').Validate();
     if (!IsValid) {
         Swal.fire({
@@ -17,12 +16,18 @@ async function applyChanges() {
             timer: 3000,
             timerProgressBar: true,
         });
-        $('button, input, checkbox').prop('disabled', false);
         return;
     }
 
+    // 2. AGORA DESATIVE OS ELEMENTOS DE FORMA SEGURA
+    // Usamos 'readonly' nos inputs para que o valor AINDA SEJA ENVIADO na requisição.
+    // Botões nós desativamos com 'disabled' normalmente.
+    $('input, select, textarea').prop('readOnly', true);
+    $('button, input[type="checkbox"]').prop('disabled', true);
+
     const requests = new Requests();
     try {
+        // Como os inputs estão apenas como 'readOnly', a sua classe Requests vai conseguir ler os dados normalmente!
         const response = (Action.value !== 'e')
             ? await requests.setForm('form').post('/fornecedor/insert')
             : await requests.setForm('form').post('/fornecedor/update');
@@ -35,7 +40,10 @@ async function applyChanges() {
                 timer: 3000,
                 timerProgressBar: true,
             });
-            $('button, input, checkbox').prop('disabled', false);
+
+            // Reativa em caso de erro retornado pelo servidor
+            $('input, select, textarea').prop('readOnly', false);
+            $('button, input[type="checkbox"]').prop('disabled', false);
             return;
         }
 
@@ -67,19 +75,22 @@ async function applyChanges() {
         });
 
     } catch (error) {
+        console.log('fornecedor/insert error', error);
+
         Swal.fire({
             icon: 'error',
             title: 'Erro',
-            text: `Restrições: ${error.message}`,
+            text: `Restrições: ${error?.message || 'sem mensagem'}`,
             timer: 3000,
             timerProgressBar: true,
         });
     } finally {
-        $('button, input, checkbox').prop('disabled', false);
+        // 3. REATIVA TUDO NO FINAL DE QUALQUER FORMA
+        $('input, select, textarea').prop('readOnly', false);
+        $('button, input[type="checkbox"]').prop('disabled', false);
     }
 }
 
 InsertBtn?.addEventListener('click', async () => {
     await applyChanges();
 });
-

@@ -27,6 +27,10 @@ final class Enterprise extends Base
             $enterprise = $qb
                 ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
+
+            if ($enterprise === false) {
+                $enterprise = [];
+            }
         }
 
         return $this->getTwig()
@@ -44,31 +48,30 @@ final class Enterprise extends Base
     {
         $form = $request->getParsedBody();
 
+        // Mapeando apenas as colunas reais que existem na tabela enterprises
         $fieldsAndValues = [
-            'numeroDocumento' => $form['numeroDocumento'] ?? '',
-            'nomeExibicao' => $form['nomeExibicao'] ?? '',
-            'nomeLegal' => $form['nomeLegal'] ?? '',
-            'registroSecundario' => $form['registroSecundario'] ?? null,
-            'dataRegistro' => $form['dataRegistro'] ?? null,
-            'regimeTributario' => $form['regimeTributario'] ?? null,
-            'codigoAtividadeEconomica' => $form['codigoAtividadeEconomica'] ?? null,
-            'cnpj' => $form['cnpj'] ?? null,
-            'cnae' => $form['cnae'] ?? null,
+            'nome'  => $form['nomeExibicao'] ?? $form['nomeLegal'] ?? $form['nome'] ?? '',
+            'cnpj'  => !empty($form['cnpj']) ? $form['cnpj'] : null,
             'ativo' => $this->normalizeAtivo($form['ativo'] ?? null),
         ];
 
         try {
-            $isInserted = \app\database\DB::connection()->insert('enterprises', $fieldsAndValues);
+            $connection = \app\database\DB::connection();
+
+            // O Doctrine DBAL cuidará do insert de forma segura
+            $isInserted = $connection->insert('enterprises', $fieldsAndValues, [
+                'ativo' => \Doctrine\DBAL\ParameterType::BOOLEAN
+            ]);
+
             if (!$isInserted) {
-                return $this->json($response, ['status' => false, 'msg' => 'Erro ao inserir', 'id' => 0], 500);
+                return $this->json($response, ['status' => false, 'msg' => 'Erro ao inserir no banco de dados', 'id' => 0], 500);
             }
 
-            $row = \app\database\DB::select('id')->from('enterprises')->orderBy('id', 'DESC')->fetchAssociative();
-            $id = is_array($row) && isset($row['id']) ? (int) $row['id'] : 0;
+            $id = (int) $connection->lastInsertId();
 
-            return $this->json($response, ['status' => true, 'msg' => 'Salvo com sucesso!', 'id' => $id], 201);
+            return $this->json($response, ['status' => true, 'msg' => 'Empresa salva com sucesso!', 'id' => $id], 201);
         } catch (\Exception $e) {
-            return $this->json($response, ['status' => false, 'msg' => $e->getMessage(), 'id' => 0], 500);
+            return $this->json($response, ['status' => false, 'msg' => 'Erro no Banco: ' . $e->getMessage(), 'id' => 0], 500);
         }
     }
 
@@ -81,26 +84,19 @@ final class Enterprise extends Base
             return $this->json($response, ['status' => false, 'msg' => 'ID obrigatório', 'id' => 0], 403);
         }
 
+        // Mapeando apenas as colunas reais para o update
         $fieldsAndValues = [
-            'numeroDocumento' => $form['numeroDocumento'] ?? null,
-            'nomeExibicao' => $form['nomeExibicao'] ?? null,
-            'nomeLegal' => $form['nomeLegal'] ?? null,
-            'registroSecundario' => $form['registroSecundario'] ?? null,
-            'dataRegistro' => $form['dataRegistro'] ?? null,
-            'regimeTributario' => $form['regimeTributario'] ?? null,
-            'codigoAtividadeEconomica' => $form['codigoAtividadeEconomica'] ?? null,
-            'cnpj' => $form['cnpj'] ?? null,
-            'cnae' => $form['cnae'] ?? null,
+            'nome'  => $form['nomeExibicao'] ?? $form['nomeLegal'] ?? $form['nome'] ?? null,
+            'cnpj'  => !empty($form['cnpj']) ? $form['cnpj'] : null,
             'ativo' => $this->normalizeAtivo($form['ativo'] ?? null),
         ];
 
         try {
-            $isUpdated = \app\database\DB::connection()->update('enterprises', $fieldsAndValues, ['id' => $id]);
-            if (!$isUpdated) {
-                return $this->json($response, ['status' => false, 'msg' => 'Erro ao atualizar', 'id' => (int) $id], 403);
-            }
+            \app\database\DB::connection()->update('enterprises', $fieldsAndValues, ['id' => $id], [
+                'ativo' => \Doctrine\DBAL\ParameterType::BOOLEAN
+            ]);
 
-            return $this->json($response, ['status' => true, 'msg' => 'Atualizado!', 'id' => (int) $id], 201);
+            return $this->json($response, ['status' => true, 'msg' => 'Empresa atualizada!', 'id' => (int) $id], 200);
         } catch (\Exception $e) {
             return $this->json($response, ['status' => false, 'msg' => $e->getMessage(), 'id' => 0], 500);
         }
@@ -118,7 +114,7 @@ final class Enterprise extends Base
         try {
             $isDeleted = \app\database\DB::connection()->delete('enterprises', ['id' => $id]);
             if (!$isDeleted) {
-                return $this->json($response, ['status' => false, 'msg' => 'Erro ao excluir', 'id' => (int) $id], 403);
+                return $this->json($response, ['status' => false, 'msg' => 'Erro ao excluir ou registro não encontrado', 'id' => (int) $id], 403);
             }
 
             return $this->json($response, ['status' => true, 'msg' => 'Excluída!', 'id' => (int) $id]);
@@ -129,15 +125,18 @@ final class Enterprise extends Base
 
     private function normalizeAtivo($value): bool
     {
-        if ($value === true) {
+        if ($value === true || $value === 1 || $value === '1') {
             return true;
         }
-        if ($value === null) {
+        if ($value === null || $value === false) {
             return false;
         }
 
         $valueStr = strtolower(trim((string) $value));
-        return in_array($valueStr, ['1', 'true', 'on', 'yes'], true);
+        if ($valueStr === '') {
+            return false;
+        }
+        return in_array($valueStr, ['true', 'on', 'yes'], true);
     }
 
     public function listingdata($request, $response)
@@ -150,7 +149,7 @@ final class Enterprise extends Base
 
         $columns = [
             0 => 'id',
-            1 => 'nomeExibicao',
+            1 => 'nome', // Ajustado para a coluna real
             2 => 'cnpj',
             3 => 'ativo',
         ];
@@ -164,23 +163,23 @@ final class Enterprise extends Base
         $orderField = $columns[$posField];
 
         try {
-            $totalRecords = (int) \app\database\DB::select('COUNT(*)')->from('enterprises')->fetchOne(0);
+            $totalRecords = (int) \app\database\DB::connection()->fetchOne('SELECT COUNT(*) FROM enterprises');
 
             $query = \app\database\DB::select('*')->from('enterprises');
 
             if (!is_null($term) && $term !== '') {
-                $query->setParameter('term', '%' . $term . '%');
-                $query->where('nomeExibicao ILIKE :term')
-                    ->orWhere('nomeLegal ILIKE :term')
-                    ->orWhere('cnpj ILIKE :term')
-                    ->orWhere('numeroDocumento ILIKE :term');
+                $query->where(
+                    $query->expr()->or(
+                        'nome ILIKE :term', // Filtrando na coluna real
+                        'cnpj ILIKE :term'
+                    )
+                )->setParameter('term', '%' . $term . '%');
             }
 
-            $filteredRecords = (int) (clone $query)
-                ->select('COUNT(*)')
-                ->fetchOne(0);
+            $countQuery = clone $query;
+            $filteredRecords = (int) $countQuery->select('COUNT(*)')->fetchOne();
 
-            $enterprises = $query
+            $enterprises = $query->select('*')
                 ->orderBy($orderField, $orderType)
                 ->setFirstResult($start)
                 ->setMaxResults($length)
@@ -188,12 +187,12 @@ final class Enterprise extends Base
 
             $rows = [];
             foreach ($enterprises as $key => $value) {
-                $status = ($value['ativo'] === true || $value['ativo'] === 1) ? 'Ativo' : 'Inativo';
+                $status = ($value['ativo'] === true || $value['ativo'] === 1 || $value['ativo'] === 't') ? 'Ativo' : 'Inativo';
 
                 $id = (int) $value['id'];
                 $rows[$key] = [
                     $id,
-                    $value['nomeExibicao'] ?? '',
+                    $value['nome'] ?? '', // Ajustado para ler 'nome'
                     $value['cnpj'] ?? '',
                     $status,
                     "<td>
@@ -204,17 +203,17 @@ final class Enterprise extends Base
             }
 
             return $this->json($response, [
-                'recordsTotal' => $totalRecords,
+                'draw'            => (int)($form['draw'] ?? 0),
+                'recordsTotal'    => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
-                'data' => array_values($rows),
+                'data'            => array_values($rows),
             ], 200);
         } catch (\Exception $e) {
             return $this->json($response, [
                 'status' => false,
-                'msg' => 'Restrição: ' . $e->getMessage(),
-                'id' => 0,
+                'msg'    => 'Restrição: ' . $e->getMessage(),
+                'id'     => 0,
             ], 500);
         }
     }
 }
-

@@ -27,6 +27,11 @@ final class Supplier extends Base
             $supplier = $qb
                 ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
+
+            // Garante que se não encontrar nada no banco, vira um array vazio
+            if ($supplier === false) {
+                $supplier = [];
+            }
         }
 
         return $this->getTwig()
@@ -44,24 +49,49 @@ final class Supplier extends Base
     {
         $form = $request->getParsedBody();
 
+        // Captura os dados do formulário incluindo o enterprise_id obrigatório
         $fieldsAndValues = [
-            'enterprise_id' => $form['enterprise_id'] ?? null,
-            'address_id' => $form['address_id'] ?? null,
+            'enterprise_id' => $form['enterprise_id'] ?? null, // Ou buscar da sessão/auth se necessário
             'nome_fantasia' => $form['nome_fantasia'] ?? '',
-            'razao_social' => $form['razao_social'] ?? '',
-            'cpf_cnpj' => $form['cpf_cnpj'] ?? '',
-            'inscricao_estadual' => $form['inscricao_estadual'] ?? null,
-            'active' => $this->normalizeAtivo($form['active'] ?? null),
+            'cpf_cnpj'      => $form['cpf_cnpj'] ?? '',
+            'ativo'         => $this->normalizeAtivo($form['ativo'] ?? $form['active'] ?? null),
         ];
 
+        // Validação preventiva: Se enterprise_id for nulo, o banco vai rejeitar
+        if (is_null($fieldsAndValues['enterprise_id']) || $fieldsAndValues['enterprise_id'] === '') {
+            return $this->json($response, [
+                'status' => false,
+                'msg' => 'O campo ID da Empresa (enterprise_id) é obrigatório.',
+                'id' => 0
+            ], 400); // 400 Bad Request
+        }
+
         try {
-            $isInserted = \app\database\DB::connection()->insert('suppliers', $fieldsAndValues);
-            if (!$isInserted) {
+            // Adicionado enterprise_id no SQL
+            $sql = 'INSERT INTO suppliers (enterprise_id, nome_fantasia, cpf_cnpj, ativo)
+                    VALUES (:enterprise_id, :nome_fantasia, :cpf_cnpj, :ativo)
+                    RETURNING id';
+
+            $row = \app\database\DB::connection()->fetchAssociative(
+                $sql,
+                [
+                    'enterprise_id' => (int) $fieldsAndValues['enterprise_id'],
+                    'nome_fantasia' => $fieldsAndValues['nome_fantasia'],
+                    'cpf_cnpj'      => $fieldsAndValues['cpf_cnpj'],
+                    'ativo'         => $fieldsAndValues['ativo'],
+                ],
+                [
+                    'enterprise_id' => \Doctrine\DBAL\ParameterType::INTEGER,
+                    'nome_fantasia' => \Doctrine\DBAL\ParameterType::STRING,
+                    'cpf_cnpj'      => \Doctrine\DBAL\ParameterType::STRING,
+                    'ativo'         => \Doctrine\DBAL\ParameterType::BOOLEAN,
+                ]
+            );
+
+            $id = is_array($row) && isset($row['id']) ? (int) $row['id'] : 0;
+            if ($id <= 0) {
                 return $this->json($response, ['status' => false, 'msg' => 'Erro ao inserir', 'id' => 0], 500);
             }
-
-            $row = \app\database\DB::select('id')->from('suppliers')->orderBy('id', 'DESC')->fetchAssociative();
-            $id = is_array($row) && isset($row['id']) ? (int) $row['id'] : 0;
 
             return $this->json($response, ['status' => true, 'msg' => 'Salvo com sucesso!', 'id' => $id], 201);
         } catch (\Exception $e) {
@@ -79,22 +109,21 @@ final class Supplier extends Base
         }
 
         $fieldsAndValues = [
-            'enterprise_id' => $form['enterprise_id'] ?? null,
-            'address_id' => $form['address_id'] ?? null,
-            'nome_fantasia' => $form['nome_fantasia'] ?? null,
-            'razao_social' => $form['razao_social'] ?? null,
-            'cpf_cnpj' => $form['cpf_cnpj'] ?? null,
+            'enterprise_id'      => !empty($form['enterprise_id']) ? $form['enterprise_id'] : null,
+            'address_id'         => !empty($form['address_id']) ? $form['address_id'] : null,
+            'nome_fantasia'      => $form['nome_fantasia'] ?? null,
+            'razao_social'       => $form['razao_social'] ?? null,
+            'cpf_cnpj'           => $form['cpf_cnpj'] ?? null,
             'inscricao_estadual' => $form['inscricao_estadual'] ?? null,
-            'active' => $this->normalizeAtivo($form['active'] ?? null),
+            'ativo'              => $this->normalizeAtivo($form['ativo'] ?? $form['active'] ?? null), // Corrigido para 'ativo'
         ];
 
         try {
-            $isUpdated = \app\database\DB::connection()->update('suppliers', $fieldsAndValues, ['id' => $id]);
-            if (!$isUpdated) {
-                return $this->json($response, ['status' => false, 'msg' => 'Erro ao atualizar', 'id' => (int) $id], 403);
-            }
+            // O método update retorna o número de linhas afetadas. 
+            // Se o usuário salvar sem alterar nada, pode retornar 0. Mas ainda assim é sucesso.
+            \app\database\DB::connection()->update('suppliers', $fieldsAndValues, ['id' => $id]);
 
-            return $this->json($response, ['status' => true, 'msg' => 'Atualizado!', 'id' => (int) $id], 201);
+            return $this->json($response, ['status' => true, 'msg' => 'Atualizado!', 'id' => (int) $id], 200);
         } catch (\Exception $e) {
             return $this->json($response, ['status' => false, 'msg' => $e->getMessage(), 'id' => 0], 500);
         }
@@ -112,7 +141,7 @@ final class Supplier extends Base
         try {
             $isDeleted = \app\database\DB::connection()->delete('suppliers', ['id' => $id]);
             if (!$isDeleted) {
-                return $this->json($response, ['status' => false, 'msg' => 'Erro ao excluir', 'id' => (int) $id], 403);
+                return $this->json($response, ['status' => false, 'msg' => 'Erro ao excluir ou registro não encontrado', 'id' => (int) $id], 403);
             }
 
             return $this->json($response, ['status' => true, 'msg' => 'Excluído!', 'id' => (int) $id]);
@@ -123,15 +152,18 @@ final class Supplier extends Base
 
     private function normalizeAtivo($value): bool
     {
-        if ($value === true) {
+        if ($value === true || $value === 1 || $value === '1') {
             return true;
         }
-        if ($value === null) {
+        if ($value === null || $value === false) {
             return false;
         }
 
         $valueStr = strtolower(trim((string) $value));
-        return in_array($valueStr, ['1', 'true', 'on', 'yes'], true);
+        if ($valueStr === '') {
+            return false;
+        }
+        return in_array($valueStr, ['true', 'on', 'yes'], true);
     }
 
     public function listingdata($request, $response)
@@ -142,11 +174,12 @@ final class Supplier extends Base
         $start = (int) ($form['start'] ?? 0);
         $length = (int) ($form['length'] ?? 10);
 
+        // Corrigido de 'active' para 'ativo' para bater com o seu banco Postgres
         $columns = [
             0 => 'id',
             1 => 'nome_fantasia',
             2 => 'cpf_cnpj',
-            3 => 'active',
+            3 => 'ativo',
         ];
 
         $posField = (isset($form['order'][0]['column']) && isset($columns[(int) $form['order'][0]['column']]))
@@ -158,23 +191,30 @@ final class Supplier extends Base
         $orderField = $columns[$posField];
 
         try {
-            $totalRecords = (int) \app\database\DB::select('COUNT(*)')->from('suppliers')->fetchOne(0);
+            // Contagem total limpa
+            $totalRecords = \app\database\DB::connection()->fetchOne('SELECT COUNT(*) FROM suppliers');
+            $totalRecords = $totalRecords !== false ? (int) $totalRecords : 0;
 
             $query = \app\database\DB::select('*')->from('suppliers');
 
             if (!is_null($term) && $term !== '') {
-                $query->setParameter('term', '%' . $term . '%');
-                $query->where('nome_fantasia ILIKE :term')
-                    ->orWhere('razao_social ILIKE :term')
-                    ->orWhere('cpf_cnpj ILIKE :term')
-                    ->orWhere('inscricao_estadual ILIKE :term');
+                $query->where(
+                    $query->expr()->or(
+                        'nome_fantasia ILIKE :term',
+                        'razao_social ILIKE :term',
+                        'cpf_cnpj ILIKE :term',
+                        'inscricao_estadual ILIKE :term'
+                    )
+                )->setParameter('term', '%' . $term . '%');
             }
 
-            $filteredRecords = (int) (clone $query)
-                ->select('COUNT(*)')
-                ->fetchOne(0);
+            // Clonando a query montada de forma segura para fazer o COUNT dos filtrados
+            $countQuery = clone $query;
+            $filteredRecords = $countQuery->select('COUNT(*)')->fetchOne();
+            $filteredRecords = $filteredRecords !== false ? (int) $filteredRecords : 0;
 
-            $suppliers = $query
+            // Executa a busca paginada redefinindo os campos que queremos trazer
+            $suppliers = $query->select('*')
                 ->orderBy($orderField, $orderType)
                 ->setFirstResult($start)
                 ->setMaxResults($length)
@@ -182,7 +222,8 @@ final class Supplier extends Base
 
             $rows = [];
             foreach ($suppliers as $key => $value) {
-                $status = ($value['active'] === true || $value['active'] === 1) ? 'Ativo' : 'Inativo';
+                // Corrigido para buscar 'ativo' (que retorna do banco)
+                $status = ($value['ativo'] === true || $value['ativo'] === 1 || $value['ativo'] === 't') ? 'Ativo' : 'Inativo';
 
                 $id = (int) $value['id'];
                 $rows[$key] = [
@@ -198,17 +239,17 @@ final class Supplier extends Base
             }
 
             return $this->json($response, [
-                'recordsTotal' => $totalRecords,
+                'draw'            => (int)($form['draw'] ?? 0),
+                'recordsTotal'    => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
-                'data' => array_values($rows),
+                'data'            => array_values($rows),
             ], 200);
         } catch (\Exception $e) {
             return $this->json($response, [
                 'status' => false,
-                'msg' => 'Restrição: ' . $e->getMessage(),
-                'id' => 0,
+                'msg'    => 'Restrição: ' . $e->getMessage(),
+                'id'     => 0,
             ], 500);
         }
     }
 }
-

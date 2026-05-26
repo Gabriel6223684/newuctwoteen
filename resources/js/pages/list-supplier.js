@@ -4,6 +4,16 @@ const table = DataTables.SetId('dataTable')
     .setRequestVariables([])
     .post('/fornecedor/listingdata');
 
+// Sync do campo de busca custom com o DataTables
+$(document).ready(() => {
+    const quick = document.getElementById('quickSearch');
+    if (!quick) return;
+
+    quick.addEventListener('input', () => {
+        table.search(quick.value).draw();
+    });
+});
+
 function ShowModal(id) {
     $('#delete-id').val(id);
     // Se não existir modal pronto no HTML, fallback: confirma e chama delete via fetch.

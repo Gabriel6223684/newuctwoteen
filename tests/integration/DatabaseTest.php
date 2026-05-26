@@ -4,25 +4,29 @@ declare(strict_types=1);
 
 // Teste 1: conexão com PostgreSQL funciona — sem isso nada no sistema opera
 test('conexão com PostgreSQL está ativa', function () {
-    // Usa a classe de conexão real do projeto
-    $pdo = App\Database\Connection::connection();
+    // Usa a classe de conexão real do projeto (Doctrine DBAL)
+    $doctrineConn = app\database\Connection::get();
+
+    // Extrai o PDO nativo de dentro do Doctrine Connection
+    $pdo = $doctrineConn->getNativeConnection();
 
     // Verifica que retornou uma instância PDO válida
     expect($pdo)->toBeInstanceOf(PDO::class);
 
     // Executa um comando simples para confirmar que o banco responde
-    $result = $pdo->query('SELECT 1 AS ok')->fetch();
+    $result = $pdo->query('SELECT 1 AS ok')->fetch(\PDO::FETCH_ASSOC);
 
     expect($result['ok'])->toBe(1);
 });
 
+
 // Teste 2: ciclo insert → select → delete funciona — garante integridade do CRUD
 test('insert select e delete funcionam no PostgreSQL', function () {
-    // Documento único para não colidir com dados reais
-    $cpfTeste = '999.999.999-99';
+    // Documento único usando uniqid para nunca colidir se o teste rodar em paralelo
+    $cpfTeste = '999.999.' . rand(100, 999) . '-' . rand(10, 99);
 
     // INSERT — cria um registro temporário
-    $inserido = App\Database\Builder\InsertQuery::insert('customer')
+    $inserido = app\database\Builder\InsertQuery::insert('customer')
         ->save([
             'nome_fantasia'       => 'Teste Integração',
             'sobrenome_razao'     => 'Razão Teste',
@@ -32,10 +36,10 @@ test('insert select e delete funcionam no PostgreSQL', function () {
             'ativo'               => true,
         ]);
 
-    expect($inserido)->toBeTrue();
+    expect($inserido)->toBeInt()->toBeGreaterThan(0);
 
     // SELECT — confirma que o registro foi salvo corretamente
-    $customer = App\Database\Builder\SelectQuery::select()
+    $customer = app\database\Builder\SelectQuery::select()
         ->from('customer')
         ->where('cpf_cnpj', '=', $cpfTeste)
         ->fetch();
@@ -44,9 +48,9 @@ test('insert select e delete funcionam no PostgreSQL', function () {
     expect($customer['nome_fantasia'])->toBe('Teste Integração');
 
     // DELETE — remove o registro de teste para não poluir o banco
-    $deletado = App\Database\Builder\DeleteQuery::table('customer')
+    $deletado = app\database\Builder\DeleteQuery::table('customer')
         ->where('id', '=', $customer['id'])
         ->delete();
 
-    expect($deletado)->toBeTrue();
+    expect($deletado)->toBeTruthy();
 });

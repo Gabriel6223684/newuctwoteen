@@ -11,6 +11,12 @@ final class Connection
 {
     private static ?DBALConnection $instance = null;
     #Retorna a conexão DBAL — cria uma única vez por processo.
+    // Compatibilidade com testes: alguns testes chamam Connection::connection()
+    public static function connection(): DBALConnection
+    {
+        return self::get();
+    }
+
     public static function get(): DBALConnection
     {
         if (self::$instance !== null) {
