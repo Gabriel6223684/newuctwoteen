@@ -18,6 +18,7 @@ final class Country extends Base
 
     public function details($request, $response, $args)
     {
+
         $id = $args['id'] ?? null;
         $action = ($id === null) ? 'c' : 'e';
         $country = [];
@@ -43,7 +44,6 @@ final class Country extends Base
     public function insert($request, $response)
     {
         $form = $request->getParsedBody();
-
         // colunas reais no banco (migration)
         $nome = $form['name'] ?? '';
         $codigoIso = $form['iso_code'] ?? '';

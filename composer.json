@@ -33,6 +33,7 @@
         "laravel/pint": "^1.0"
     },
     "scripts": {
+        "test:arch": "pest --testsuite=Architecture --bail",
         "test": "pest",
         "test:cov": "pest --coverage --min=80",
         "test:html": "pest --coverage-html storage/coverage/",
@@ -42,6 +43,7 @@
         "ci": [
             "@format:check",
             "@analyse",
+            "@teste:arch",
             "@test:cov"
         ]
     },

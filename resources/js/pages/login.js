@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
-import Validate from "../components/validate.js";
-import Requests from "../components/requests.js";
+import Requests from "../Components/requests.js";
+import Validate from "../Components/validate.js";
 
 const buttonPreRegister = document.getElementById("buttonPreRegister");
 const buttonLogin = document.getElementById("buttonLogin");

@@ -1,5 +1,5 @@
-import DataTables from '../components/data-tables.js';
-import Requests from '../components/requests.js';
+import DataTables from '../Components/data-tables.js';
+import Requests from '../Components/requests.js';
 
 const Id = document.getElementById('id');
 const table = DataTables.SetId('table-customer').setRequestVariables([]).post('/cliente/listingdata');

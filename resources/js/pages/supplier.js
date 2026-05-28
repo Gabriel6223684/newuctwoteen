@@ -1,5 +1,5 @@
-import Requests from '../components/requests.js';
-import Validate from '../components/validate.js';
+import Requests from "../Components/requests.js";
+import Validate from "../Components/validate.js";
 
 const Action = document.getElementById('action');
 const Id = document.getElementById('id');
