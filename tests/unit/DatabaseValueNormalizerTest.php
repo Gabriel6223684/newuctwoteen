@@ -6,7 +6,7 @@ test('DatabaseValueNormalizer: normalizeToFloat converte formatos numéricos', f
     // Aqui não usamos trait diretamente (para evitar erro de autoload em ambientes onde a trait
     // não é resolvida pelo Pest). Em vez disso, validamos o comportamento dos métodos via classe stub.
     $stub = new class {
-        use \App\Trait\DatabaseValueNormalizer;
+        use \app\Trait\DatabaseValueNormalizer;
     };
 
     expect($stub->normalizeToFloat(42))->toBe(42.0);
@@ -24,7 +24,7 @@ test('DatabaseValueNormalizer: normalizeToFloat converte formatos numéricos', f
 
 test('DatabaseValueNormalizer: conversão de datas ida e volta preserva valor', function () {
     $stub = new class {
-        use \App\Trait\DatabaseValueNormalizer;
+        use \app\Trait\DatabaseValueNormalizer;
     };
 
     $dataBanco = '2025-06-15 08:45:00';

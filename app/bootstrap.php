@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Slim\Factory\AppFactory;
+use Slim\Factory\appFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -10,11 +10,11 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
-$app = AppFactory::create();
+$app = appFactory::create();
 
 $app->addRoutingMiddleware();
 
-$debug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+$debug = ($_ENV['app_DEBUG'] ?? 'false') === 'true';
 
 $app->addErrorMiddleware($debug, $debug, $debug);
 

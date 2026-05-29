@@ -3,8 +3,8 @@
 /node_modules
 /tmp
 /logs
-/docker/postgres/storage
-/docker/redis/storage
+/Docker/postgres/storage
+/Docker/redis/storage
 .env
 # Node.js / Vite
 /node_modules
@@ -12,21 +12,21 @@
 /public/hot
 # Build output do Vite — gerado pelo CI/CD a partir de resources/
 /public/assets
-docker/redis/dump.rdb
+Docker/redis/dump.rdb
 
 # === Segredos de TLS — chave privada NUNCA pode ir para o Git ===
-docker/traefik/certs/      # certs mkcert de dev (contêm chave privada)
-docker/traefik/acme/       # acme.json de prod (contém as chaves emitidas)
+Docker/traefik/certs/      # certs mkcert de dev (contêm chave privada)
+Docker/traefik/acme/       # acme.json de prod (contém as chaves emitidas)
 *.pem
 *.key
 *.crt
 
 # === Legado a remover, caso ainda exista no disco ===
-docker/certbot/
+Docker/certbot/
 
 # === Dados de runtime (já fora do versionamento por design) ===
-docker/postgres/storage/
-docker/redis/
+Docker/postgres/storage/
+Docker/redis/
 storage/
 
 # === Ambiente ===

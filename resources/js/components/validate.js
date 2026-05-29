@@ -28,7 +28,7 @@ export default class Validate {
             throw new Error("Formulário não encontrado!");
         }
         // inicializa o validator para o formulário (gera o validator e aplica regras/placements)
-        // não sobrescrevemos regras existentes: se você quiser regras por JS, pode passar um objeto aqui
+        // não sobrescrevemos regras existentes: se você quiser regras por js, pode passar um objeto aqui
         this.form.validate();
         return this;
     }

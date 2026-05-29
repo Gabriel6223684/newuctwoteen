@@ -462,7 +462,7 @@
                     "role": "Developer"
                 }
             ],
-            "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
+            "description": "A simple library to encode and decode jsON Web Tokens (JWT) in PHP. Should conform to the current spec.",
             "homepage": "https://github.com/firebase/php-jwt",
             "keywords": [
                 "jwt",
@@ -2198,7 +2198,7 @@
                     "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
                 },
                 "classmap": [
-                    "Resources/stubs"
+                    "resources/stubs"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -2365,7 +2365,7 @@
                     "Symfony\\Polyfill\\Php80\\": ""
                 },
                 "classmap": [
-                    "Resources/stubs"
+                    "resources/stubs"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -2449,7 +2449,7 @@
                     "Symfony\\Polyfill\\Php81\\": ""
                 },
                 "classmap": [
-                    "Resources/stubs"
+                    "resources/stubs"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -2684,7 +2684,7 @@
             "type": "library",
             "autoload": {
                 "files": [
-                    "Resources/functions.php"
+                    "resources/functions.php"
                 ],
                 "psr-4": {
                     "Symfony\\Component\\String\\": ""
@@ -2849,10 +2849,10 @@
             "type": "library",
             "autoload": {
                 "files": [
-                    "src/Resources/core.php",
-                    "src/Resources/debug.php",
-                    "src/Resources/escaper.php",
-                    "src/Resources/string_loader.php"
+                    "src/resources/core.php",
+                    "src/resources/debug.php",
+                    "src/resources/escaper.php",
+                    "src/resources/string_loader.php"
                 ],
                 "psr-4": {
                     "Twig\\": "src/"
@@ -3567,7 +3567,7 @@
             "type": "project",
             "autoload": {
                 "psr-4": {
-                    "App\\": "app/",
+                    "app\\": "app/",
                     "Database\\Seeders\\": "database/seeders/",
                     "Database\\Factories\\": "database/factories/"
                 }

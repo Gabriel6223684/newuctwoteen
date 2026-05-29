@@ -9,8 +9,8 @@ $dotenv->safeLoad();
 
 return [
     'paths' => [
-        'migrations' => __DIR__ . '/app/database/Migration',
-        'seeds' => __DIR__ . '/database/seeds',
+        'migrations' => __DIR__ . '/App/Database/Migration',
+        'seeds' => __DIR__ . '/Database/seeds',
     ],
     'environments' => [
         'default_migration_table' => 'phinxlog',

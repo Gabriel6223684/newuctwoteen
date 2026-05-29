@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\database\migration;
+namespace App\Database\Migration;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
@@ -31,7 +31,7 @@ final class Version20260507171344 extends AbstractMigration
                 MAX(c.contato) FILTER (WHERE c.tipo = 'EMAIL')    AS email,
                 MAX(c.contato) FILTER (WHERE c.tipo = 'CELULAR')  AS celular,
                 MAX(c.contato) FILTER (WHERE c.tipo = 'TELEFONE') AS telefone,
-                MAX(c.contato) FILTER (WHERE c.tipo = 'WHATSAPP') AS whatsapp,
+                MAX(c.contato) FILTER (WHERE c.tipo = 'WHATSapp') AS whatsapp,
                 u.criado_em,
                 u.atualizado_em
             FROM users u

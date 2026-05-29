@@ -14,7 +14,7 @@ use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\Finder\MigrationFinder;
 use Doctrine\Migrations\Finder\RecursiveRegexFinder;
 use Doctrine\Migrations\Tools\Console\Command;
-use Symfony\Component\Console\Application;
+use Symfony\Component\Console\application;
 use app\database\Connection;
 use app\database\MakeMigrationCommand;
 
@@ -33,7 +33,7 @@ $dependencyFactory->setService(
     new RecursiveRegexFinder('/^.+\.php$/i')
 );
 
-$app = new Application('Migrations — Jaiminho3');
+$app = new application('Migrations — Jaiminho3');
 
 $app->addCommands([
     new Command\ExecuteCommand($dependencyFactory),

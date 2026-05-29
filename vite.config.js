@@ -46,9 +46,9 @@ export default defineConfig(({ command }) => ({
             input: {
                 style: resolve(__dirname, 'resources/css/app.css'),
                 app: resolve(__dirname, 'resources/js/app.js'),
-                // CSS como entry INDEPENDENTE — não acoplado ao JS
+                // CSS como entry INDEPENDENTE — não acoplado ao js
                 style: resolve(__dirname, 'resources/css/app.css'),
-                // JS principal — sem nenhum import de CSS dentro dele
+                // js principal — sem nenhum import de CSS dentro dele
                 app: resolve(__dirname, 'resources/js/app.js'),
                 // Entries por página
                 'pages/customer': resolve(__dirname, 'resources/js/pages/customer.js'),

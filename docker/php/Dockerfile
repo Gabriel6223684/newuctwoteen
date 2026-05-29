@@ -8,7 +8,7 @@ WORKDIR /build
 COPY package.json package-lock.json ./
 
 # Instala dependências de forma determinística pelo lockfile
-RUN npm ci --no-audit --no-fund
+#RUN npm ci --no-audit --no-fund
 
 # Copia o arquivo de configuração do Vite
 COPY vite.config.js ./
@@ -17,7 +17,7 @@ COPY vite.config.js ./
 COPY resources ./resources
 
 # Gera os assets de produção com hash em public/assets
-RUN npm run build
+#RUN npm run build
 
 # Estágio 2 — runtime do PHP-FPM 8.5 sobre Alpine 3.23
 FROM php:8.5.6-fpm-alpine3.23
@@ -61,7 +61,7 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
 RUN mkdir -p /tmp/opcache && chmod 1777 /tmp/opcache
 
 # Copia o php.ini customizado para a pasta de configurações adicionais
-COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY Docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
 
 # Copia o binário do Composer da imagem oficial sem instalar manualmente
 COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer
@@ -79,7 +79,7 @@ WORKDIR /var/www
 COPY . .
 
 # Copia os assets já compilados do estágio 1 sobre o diretório public/assets
-COPY --from=assets /build/public/assets ./public/assets
+#COPY --from=assets /build/public/assets ./public/assets
 
 # Porta TCP onde o PHP-FPM escuta
 EXPOSE 9000

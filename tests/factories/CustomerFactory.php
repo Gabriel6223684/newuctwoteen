@@ -15,7 +15,7 @@ test('insere customer com dados da factory', function () {
         'ativo'               => true,
     ];
 
-    $inserido = App\Database\Builder\InsertQuery::insert('customer')
+    $inserido = app\Database\Builder\InsertQuery::insert('customer')
         ->save($dados);
 
     expect($inserido)->toBeTrue();

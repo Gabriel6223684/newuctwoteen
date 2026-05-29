@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace app\helpers;
+namespace App\Helpers;
 
 final class Vite
 {
-
     # Arquivo criado pelo 'vite dev' — presença indica servidor de desenvolvimento ativo
     private const HOT  = __DIR__ . '/../../public/hot';
     # Manifest gerado pelo 'npm run build' — mapeia entrypoints para arquivos com hash
@@ -44,18 +43,18 @@ final class Vite
         # Acrescenta uma tag <script type="module"> por entrypoint apontando para o dev server
         return $out . implode("\n    ", array_map(fn($e) => "<script type=\"module\" src=\"{$url}/{$e}\"></script>", $entries));
     }
-    # Modo build: resolve arquivos com hash via manifest e gera CSS → modulepreload → JS
+    # Modo build: resolve arquivos com hash via manifest e gera CSS → modulepreload → js
     private static function renderBuild(array $entries): string
     {
         # Decodifica o manifest uma única vez e armazena em cache estático
-        $m = self::$manifest ??= json_decode((string) file_get_contents(self::MAN), true, 512, JSON_THROW_ON_ERROR);
+        $m = self::$manifest ??= json_decode((string) file_get_contents(self::MAN), true, 512, jsON_THROW_ON_ERROR);
         # Acumuladores separados: $css, $pre e $js garantem a ordem correta na saída HTML
         [$css, $pre, $js, $sc, $sp] = [[], [], [], [], []];
         # Valida cada entrypoint no manifest e coleta suas tags e dependências
         foreach ($entries as $e) isset($m[$e])
             ? self::collect($m, $e, $css, $pre, $js, $sc, $sp)
             : throw new \RuntimeException("Entrypoint '{$e}' não encontrado em manifest.json. Execute 'npm run build'.");
-        # CSS antes evita FOUC; modulepreload antes de JS permite carregamento paralelo
+        # CSS antes evita FOUC; modulepreload antes de js permite carregamento paralelo
         return implode("\n    ", array_merge($css, $pre, $js));
     }
     # Coleta recursivamente CSS, script/preload e imports do manifest
@@ -65,7 +64,7 @@ final class Vite
         if (!$chunk = ($m[$key] ?? null)) return;
         # Registra o CSS direto do chunk $sc (seen CSS) previne <link> duplicados entre chunks
         foreach ($chunk['css'] ?? [] as $c) $sc[$c] ??= ($css[] = sprintf('<link rel="stylesheet" href="%s%s">', self::BASE, $c));
-        # Arquivo principal: CSS <link>, entry JS <script>, import JS <modulepreload>
+        # Arquivo principal: CSS <link>, entry js <script>, import js <modulepreload>
         if ($f = $chunk['file'] ?? '') {
             if (str_ends_with($f, '.css')) {
                 $sc[$f] ??= ($css[] = sprintf('<link rel="stylesheet" href="%s%s">', self::BASE, $f));

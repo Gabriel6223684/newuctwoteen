@@ -29,7 +29,7 @@ export default class Requests {
         return this;
     }
     /**
-     * Define body manualmente (JSON, FormData, etc)
+     * Define body manualmente (jsON, FormData, etc)
      */
     setBody(body) {
         this.body = body;
@@ -74,7 +74,7 @@ export default class Requests {
             const text = await response.text();
             let errorBody = null;
             try {
-                errorBody = text ? JSON.parse(text) : null;
+                errorBody = text ? jsON.parse(text) : null;
             } catch {
                 errorBody = { raw: text };
             }
@@ -94,14 +94,14 @@ export default class Requests {
 
             throw new Error(`HTTP ${response.status} - ${backendMsg}`);
         }
-        return this.#safeParseJson(response);
+        return this.#safeParsejson(response);
 
     }
     /**
      * Evita erro ao tentar parsear body vazio
      */
-    async #safeParseJson(response) {
+    async #safeParsejson(response) {
         const text = await response.text();
-        return text ? JSON.parse(text) : null;
+        return text ? jsON.parse(text) : null;
     }
 }

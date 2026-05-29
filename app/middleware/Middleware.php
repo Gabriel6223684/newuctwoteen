@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\middleware;
+namespace App\Middleware;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -24,7 +24,7 @@ class Middleware
             } catch (\Throwable $e) {
                 #Qualquer falha cai aqui: cookie ausente, expirado ou adulterado.
                 $response = new Response();
-                #Resposta JSON padronizada no mesmo contrato usado pelo Login::auth.
+                #Resposta jsON padronizada no mesmo contrato usado pelo Login::auth.
                 $response->getBody()->write(json_encode(['status' => false, 'msg' => 'Sessão expirada ou não autenticada.', 'id' => 0]));
                 #Status 401 é o código semântico correto para credencial inválida.
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(401);

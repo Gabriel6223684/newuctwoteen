@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\controller;
+namespace App\Controller;
 
 final class Country extends Base
 {
@@ -176,4 +176,3 @@ final class Country extends Base
         }
     }
 }
-

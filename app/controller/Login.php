@@ -1,6 +1,8 @@
 <?php
 
-namespace app\controller;
+declare(strict_types=1);
+
+namespace App\Controller;
 
 final class Login extends Base
 {
@@ -212,7 +214,7 @@ final class Login extends Base
                 ['timeout' => 3, 'connect_timeout' => 2]
             );
 
-            $claims = json_decode((string) $httpResponse->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $claims = json_decode((string) $httpResponse->getBody(), true, flags: jsON_THROW_ON_ERROR);
 
             $nome = (string) ($claims['given_name'] ?? '');
             $sobrenome = (string) ($claims['family_name'] ?? '');

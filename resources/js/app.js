@@ -1,7 +1,7 @@
 // 1. jQuery global — DEVE ser o primeiro import.
 import './jquery-global.js'
 
-// 2. Bootstrap 5 — JS bundle inclui Popper internamente
+// 2. Bootstrap 5 — js bundle inclui Popper internamente
 import 'bootstrap'
 
 // DataTables core + extensões com tema Bootstrap 5

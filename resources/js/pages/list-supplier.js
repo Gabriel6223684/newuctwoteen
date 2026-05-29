@@ -1,4 +1,4 @@
-import DataTables from '../Components/data-tables.js';
+import DataTables from '../components/data-tables.js';
 
 const table = DataTables.SetId('dataTable')
     .setRequestVariables([])

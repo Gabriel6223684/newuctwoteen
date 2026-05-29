@@ -3,7 +3,7 @@ log:
   level: INFO
   format: json
 
-# Log de acesso em JSON, sem ruído de health check
+# Log de acesso em jsON, sem ruído de health check
 accessLog:
   format: json
   filters:

@@ -35,14 +35,14 @@ test('update sem ID retorna 403 com mensagem de erro', function () {
     $response = $this->responseFactory->createResponse();
     $result = $this->controller->update($request, $response);
 
-    # Lê o corpo da resposta JSON
+    # Lê o corpo da resposta jsON
     $result->getBody()->rewind();
     $json = json_decode($result->getBody()->getContents(), true);
 
     # Status HTTP deve ser 403
     expect($result->getStatusCode())->toBe(403);
 
-    # JSON deve indicar falha
+    # jsON deve indicar falha
     expect($json['status'])->toBeFalse();
 
     # Mensagem deve pedir o ID
@@ -58,14 +58,14 @@ test('delete sem ID retorna 403 com mensagem de erro', function () {
     $response = $this->responseFactory->createResponse();
     $result = $this->controller->delete($request, $response);
 
-    # Lê o corpo da resposta JSON
+    # Lê o corpo da resposta jsON
     $result->getBody()->rewind();
     $json = json_decode($result->getBody()->getContents(), true);
 
     # Status HTTP deve ser 403
     expect($result->getStatusCode())->toBe(403);
 
-    # JSON deve indicar falha
+    # jsON deve indicar falha
     expect($json['status'])->toBeFalse();
 
     # Mensagem deve pedir o código do cliente
