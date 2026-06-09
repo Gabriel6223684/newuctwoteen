@@ -11,7 +11,7 @@ trait Response
         array $data,
         int $statusCode = 200
     ) {
-        $json = json_encode($data, jsON_UNESCAPED_SLASHES | jsON_UNESCAPED_UNICODE | jsON_THROW_ON_ERROR);
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
         $response->getBody()->write($json);
 

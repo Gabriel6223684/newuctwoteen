@@ -62,8 +62,8 @@ final class MakeMigrationCommand extends Command
 
             namespace app\database\migration;
 
-            use Doctrine\DBAL\Schema\Schema;
-            use Doctrine\Migrations\AbstractMigration;
+            use phinx\DBAL\Schema\Schema;
+            use phinx\Migrations\AbstractMigration;
 
             final class {$className} extends AbstractMigration
             {

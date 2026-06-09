@@ -15,7 +15,8 @@
                     <i class="fa-solid fa-globe text-warning me-3"></i>
                     Gerencie sua base de dados integrada
                 </h1>
-                <p class="lead text-white-50 mb-4">Crie, edite e gerencie clientes, empresas, fornecedores e endereços com relacionamentos completos.</p>
+                <p class="lead text-white-50 mb-4">Crie, edite e gerencie clientes, empresas, fornecedores e endereços
+                    com relacionamentos completos.</p>
                 <div class="d-flex gap-3 flex-wrap">
                     <a href="/cliente/lista" class="btn btn-warning btn-lg">
                         <i class="fa-solid fa-users me-2"></i>Clientes
@@ -98,12 +99,18 @@
                     <h6 class="mb-0"><i class="fa-solid fa-lightbulb me-2"></i>Dica Rápida</h6>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted small">Use Ctrl+K para busca rápida ou clique nos cards acima para acessar os módulos.</p>
+                    <p class="text-muted small">Use Ctrl+K para busca rápida ou clique nos cards acima para acessar os
+                        módulos.</p>
                 </div>
             </div>
         </div>
+        <div id="resultadoVenda" style="width: 800px; height:500px;"></div>
+        <div id="resultadoMarketing" style="width: 800px; height:500px;"></div>
+        <div id="chart-container"></div>
     </div>
-</div>{% endblock %}
+</div>
+{% endblock %}
 {% block script %}
-<script></script>
+<script src="https://echarts.apache.org/en/js/vendors/echarts/dist/echarts.min.js"></script>
+{{ vite('resources/js/pages/home.js') }}
 {% endblock %}

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Database;
 
-use Doctrine\DBAL\Connection as DBALConnection;
-use Doctrine\DBAL\DriverManager;
+use phinx\DBAL\Connection as DBALConnection;
+use phinx\DBAL\DriverManager;
 
 final class Connection
 {

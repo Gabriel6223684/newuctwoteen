@@ -25,7 +25,7 @@ final class User extends Base
         if (!is_null($id)) {
             $qb = \app\database\DB::select('*')->from('vw_user');
             $user = $qb
-                ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
+                ->where('id = ' . $qb->createPositionalParameter($id, \phinx\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
         }
 

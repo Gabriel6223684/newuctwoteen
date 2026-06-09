@@ -61,7 +61,7 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
 RUN mkdir -p /tmp/opcache && chmod 1777 /tmp/opcache
 
 # Copia o php.ini customizado para a pasta de configurações adicionais
-COPY Docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
 
 # Copia o binário do Composer da imagem oficial sem instalar manualmente
 COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer

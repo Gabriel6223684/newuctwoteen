@@ -3,11 +3,13 @@
 declare(strict_types=1);
 use Slim\Factory\AppFactory;
 $app = AppFactory::create();
-require __DIR__ . '/../vendor/autoload.php';
 
-$app->get('/', App\Controller\Home::class . ':home')->add(App\Middleware\Middleware::web());
-$app->get('/home', App\Controller\Home::class . ':home')->add(App\Middleware\Middleware::web());
-$app->get('/login', App\Controller\Login::class . ':login')->add(App\Middleware\Middleware::web());
+$app->get('/', App\Controller\Home::class . ':home'); //->add(App\Middleware\Middleware::web());
+$app->get('/home', App\Controller\Home::class . ':home'); //->add(App\Middleware\Middleware::web());
+$app->get('/login', App\Controller\Login::class . ':login'); //->add(App\Middleware\Middleware::web());
+
+$app->get('/home/charts', App\Controller\Home::class . ':charts');
+
 
 $app->group('/authentication', function (Slim\Routing\RouteCollectorProxy $group) {
     $group->post('/google', App\Controller\Login::class . ':google');

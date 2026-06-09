@@ -10,21 +10,22 @@ $dotenv->safeLoad();
 return [
     'paths' => [
         'migrations' => __DIR__ . '/App/Database/Migration',
-        'seeds' => __DIR__ . '/Database/seeds',
+        'seeds'      => __DIR__ . '/App/Database/Seed',
     ],
+
     'environments' => [
         'default_migration_table' => 'phinxlog',
-        'default_environment' => 'default',
-        'default' => [
+        'default_environment' => 'development',
+
+        'development' => [
             'adapter' => 'pgsql',
-            'host' => $_ENV['DB_HOST'] ?? 'localhost',
-            'name' => $_ENV['DB_NAME'] ?? 'development_db',
-            'user' => $_ENV['DB_USER'] ?? 'senac',
-            'pass' => $_ENV['DB_PASSWORD'] ?? 'senac',
-            'port' => $_ENV['DB_PORT'] ?? '5432',
-            'charset' => 'utf8',
-            'collation' => null,
+            'host' => 'postgres',
+            'name' => 'development_db',
+            'user' => 'senac',
+            'pass' => 'senac',
+            'port' => 5432,
         ],
     ],
+
     'version_order' => 'creation',
 ];

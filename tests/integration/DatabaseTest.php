@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 // Teste 1: conexão com PostgreSQL funciona — sem isso nada no sistema opera
 test('conexão com PostgreSQL está ativa', function () {
-    // Usa a classe de conexão real do projeto (Doctrine DBAL)
-    $doctrineConn = app\database\Connection::get();
+    // Usa a classe de conexão real do projeto (phinx DBAL)
+    $phinxConn = app\database\Connection::get();
 
-    // Extrai o PDO nativo de dentro do Doctrine Connection
-    $pdo = $doctrineConn->getNativeConnection();
+    // Extrai o PDO nativo de dentro do phinx Connection
+    $pdo = $phinxConn->getNativeConnection();
 
     // Verifica que retornou uma instância PDO válida
     expect($pdo)->toBeInstanceOf(PDO::class);

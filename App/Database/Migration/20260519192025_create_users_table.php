@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Phinx\Migration\AbstractMigration;
 use Phinx\Util\Literal;
 
-final class Enterprise extends AbstractMigration
+final class CreateUsersTable extends AbstractMigration
 {
     public function up(): void
     {
-        $table = $this->table('enterprises', [
+        $table = $this->table('users', [
             'id' => false,
             'primary_key' => ['id']
         ]);
@@ -19,17 +19,37 @@ final class Enterprise extends AbstractMigration
                 'identity' => true
             ])
 
-            ->addColumn('nome', 'text', [
+            ->addColumn('nome', 'string', [
+                'limit' => 150,
                 'default' => ''
             ])
 
-            ->addColumn('cnpj', 'string', [
-                'limit' => 18,
+            ->addColumn('sobrenome', 'string', [
+                'limit' => 150,
+                'default' => ''
+            ])
+
+            ->addColumn('cpf', 'string', [
+                'limit' => 14,
+                'default' => ''
+            ])
+
+            ->addColumn('rg', 'string', [
+                'limit' => 20,
+                'default' => ''
+            ])
+
+            ->addColumn('senha', 'string', [
+                'limit' => 255,
                 'default' => ''
             ])
 
             ->addColumn('ativo', 'boolean', [
-                'default' => true
+                'default' => false
+            ])
+
+            ->addColumn('administrador', 'boolean', [
+                'default' => false
             ])
 
             ->addColumn('criado_em', 'timestamp', [
@@ -43,17 +63,18 @@ final class Enterprise extends AbstractMigration
             ])
 
             ->addIndex(
-                ['cnpj'],
+                ['cpf'],
                 ['unique' => true]
             )
 
             ->addIndex(['nome'])
+            ->addIndex(['sobrenome'])
 
             ->create();
     }
 
     public function down(): void
     {
-        $this->table('enterprises')->drop()->save();
+        $this->table('users')->drop()->save();
     }
 }

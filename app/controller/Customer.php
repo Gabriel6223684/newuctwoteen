@@ -39,7 +39,7 @@ final class Customer extends Base
             $qb = \app\database\DB::select('*')->from('customer');
 
             $customer = $qb
-                ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
+                ->where('id = ' . $qb->createPositionalParameter($id, \phinx\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
         }
         return $this->getTwig()

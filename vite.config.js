@@ -51,6 +51,7 @@ export default defineConfig(({ command }) => ({
                 // js principal — sem nenhum import de CSS dentro dele
                 app: resolve(__dirname, 'resources/js/app.js'),
                 // Entries por página
+                'pages/home': resolve(__dirname, 'resources/js/pages/home.js'),
                 'pages/customer': resolve(__dirname, 'resources/js/pages/customer.js'),
                 'pages/list-customer': resolve(__dirname, 'resources/js/pages/list-customer.js'),
                 'pages/user': resolve(__dirname, 'resources/js/pages/user.js'),
@@ -90,3 +91,20 @@ export default defineConfig(({ command }) => ({
     ]
 }));
 
+function buildPageEntries() {
+    //Capatura o caminho completo do diretório de páginas
+    const pagesDir = resolve(__dirname, 'resources/js/pages')
+    //Percorre recursivamente o diretório, filtrando apenas arquivos .js 
+    // e criando um objeto de entradas
+    return Object.fromEntries(
+        fs.readdirSync(pagesDir, { recursive: true })
+            .filter(file => String(file).endsWith('.js'))
+            .map(file => {
+                const normalized = String(file).replace(/\\/g, '/') // Windows path fix
+                return [
+                    `pages/${normalized.replace(/\.js$/, '')}`,
+                    resolve(pagesDir, normalized)
+                ]
+            })
+    )
+}

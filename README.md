@@ -64,6 +64,13 @@ docker compose up -d
 docker ps
 ```
 
+## Rodar migrations com Phinx
+
+```bash
+docker compose exec php ./vendor/bin/phinx status
+docker compose exec php ./vendor/bin/phinx migrate
+```
+
 ## Executar os testes
 
 ```bash

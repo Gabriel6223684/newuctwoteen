@@ -25,7 +25,7 @@ final class Enterprise extends Base
         if (!is_null($id)) {
             $qb = \app\database\DB::select('*')->from('enterprises');
             $enterprise = $qb
-                ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
+                ->where('id = ' . $qb->createPositionalParameter($id, \phinx\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
 
             if ($enterprise === false) {
@@ -58,9 +58,9 @@ final class Enterprise extends Base
         try {
             $connection = \app\database\DB::connection();
 
-            // O Doctrine DBAL cuidará do insert de forma segura
+            // O phinx DBAL cuidará do insert de forma segura
             $isInserted = $connection->insert('enterprises', $fieldsAndValues, [
-                'ativo' => \Doctrine\DBAL\ParameterType::BOOLEAN
+                'ativo' => \phinx\DBAL\ParameterType::BOOLEAN
             ]);
 
             if (!$isInserted) {
@@ -93,7 +93,7 @@ final class Enterprise extends Base
 
         try {
             \app\database\DB::connection()->update('enterprises', $fieldsAndValues, ['id' => $id], [
-                'ativo' => \Doctrine\DBAL\ParameterType::BOOLEAN
+                'ativo' => \phinx\DBAL\ParameterType::BOOLEAN
             ]);
 
             return $this->json($response, ['status' => true, 'msg' => 'Empresa atualizada!', 'id' => (int) $id], 200);

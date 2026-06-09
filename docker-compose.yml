@@ -22,7 +22,7 @@ services:
     # Arquivos montados do host dentro do container
     volumes:
       # Configuração do site em modo somente leitura
-      - ./Docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       # Diretório público da aplicação em modo somente leitura
       - ./public:/var/www/public:ro
     # Diretórios em RAM para evitar I/O de disco
@@ -40,7 +40,7 @@ services:
           # Fração máxima de CPU do host
           cpus: "0.50"
         reservations:
-          # Memória mínima garantida pelo Docker
+          # Memória mínima garantida pelo docker
           memory: 256M
     # Limites de file descriptor do processo
     ulimits:
@@ -51,7 +51,7 @@ services:
         hard: 65536
     # Configuração de captura e rotação de logs
     logging:
-      # Driver json-file padrão do Docker
+      # Driver json-file padrão do docker
       driver: json-file
       options:
         # Tamanho máximo de cada arquivo de log
@@ -80,12 +80,12 @@ services:
   php:
     # Diretório padrão de trabalho dentro do container
     working_dir: /var/www
-    # Build a partir do Dockerfile do projeto
+    # Build a partir do dockerfile do projeto
     build:
       # Contexto de build na raiz do projeto
       context: .
-      # Caminho do Dockerfile
-      dockerfile: Docker/php/Dockerfile
+      # Caminho do dockerfile
+      dockerfile: docker/php/Dockerfile
     # Nome fixo do container
     container_name: app_php
     # Sobe novamente caso o processo morra
@@ -180,7 +180,7 @@ services:
           # Fração máxima de CPU do host
           cpus: "2.00"
         reservations:
-          # Memória mínima garantida pelo Docker
+          # Memória mínima garantida pelo docker
           memory: 512M
     # Limites de file descriptor por worker
     ulimits:
@@ -254,7 +254,7 @@ services:
 
     # Volume de persistência do Redis no host
     volumes:
-      - ./Docker/redis:/data
+      - ./docker/redis:/data
 
     # Liga o container à rede interna do projeto
     networks:
@@ -296,9 +296,9 @@ services:
     # Volumes do container
     volumes:
       # Persiste dados do banco no host
-      - ./Docker/postgres/storage:/var/lib/postgresql/data/pgdata
+      - ./docker/postgres/storage:/var/lib/postgresql/data/pgdata
       # Script SQL executado na primeira inicialização
-      - ./Docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     # Diretório em RAM para operações temporárias
     tmpfs:
       # Pasta temporária do PostgreSQL em RAM
@@ -312,7 +312,7 @@ services:
           # Fração máxima de CPU do host
           cpus: "1.00"
         reservations:
-          # Memória mínima garantida pelo Docker
+          # Memória mínima garantida pelo docker
           memory: 256M
     # Limites de file descriptor do processo
     ulimits:
@@ -360,12 +360,12 @@ services:
       # Token usado só em produção para o desafio DNS-01 do Cloudflare
       CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN:-}
     volumes:
-      # Docker socket read-only: Traefik descobre os containers por labels
-      - /var/run/Docker.sock:/var/run/Docker.sock:ro
-      - ./Docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./Docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
-      - ./Docker/traefik/certs:/etc/traefik/certs:ro
-      - ./Docker/traefik/acme:/etc/traefik/acme
+      # docker socket read-only: Traefik descobre os containers por labels
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./docker/traefik/certs:/etc/traefik/certs:ro
+      - ./docker/traefik/acme:/etc/traefik/acme
     depends_on:
       - nginx
     networks:
@@ -380,5 +380,5 @@ volumes:
 networks:
   # Rede bridge interna que conecta todos os serviços
   app_network:
-    # Driver bridge padrão do Docker
+    # Driver bridge padrão do docker
     driver: bridge

@@ -16,8 +16,7 @@ final class Login extends Base
                 ->withHeader('Content-Type', 'text/html')
                 ->withStatus(200);
         } catch (\Exception $e) {
-            error_log('[login][VIEW] ' . $e->getMessage());
-            return $this->json($response, ['status' => false, 'msg' => 'Erro ao carregar a página.'], 500);
+            var_dump($e->getMessage());
         }
     }
 
@@ -163,7 +162,7 @@ final class Login extends Base
             'senha'     => password_hash($senha, PASSWORD_DEFAULT)
         ];
 
-        # Insere os dados no database com o Doctrine e recupera o ID corretamente via conexão
+        # Insere os dados no database com o phinx e recupera o ID corretamente via conexão
         \app\database\DB::connection()->insert('users', $DataUser);
         $id_usuario = \app\database\DB::connection()->lastInsertId();
 

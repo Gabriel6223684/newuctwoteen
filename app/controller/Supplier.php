@@ -25,7 +25,7 @@ final class Supplier extends Base
         if (!is_null($id)) {
             $qb = \app\database\DB::select('*')->from('suppliers');
             $supplier = $qb
-                ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
+                ->where('id = ' . $qb->createPositionalParameter($id, \phinx\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
 
             // Garante que se não encontrar nada no banco, vira um array vazio
@@ -81,10 +81,10 @@ final class Supplier extends Base
                     'ativo'         => $fieldsAndValues['ativo'],
                 ],
                 [
-                    'enterprise_id' => \Doctrine\DBAL\ParameterType::INTEGER,
-                    'nome_fantasia' => \Doctrine\DBAL\ParameterType::STRING,
-                    'cpf_cnpj'      => \Doctrine\DBAL\ParameterType::STRING,
-                    'ativo'         => \Doctrine\DBAL\ParameterType::BOOLEAN,
+                    'enterprise_id' => \phinx\DBAL\ParameterType::INTEGER,
+                    'nome_fantasia' => \phinx\DBAL\ParameterType::STRING,
+                    'cpf_cnpj'      => \phinx\DBAL\ParameterType::STRING,
+                    'ativo'         => \phinx\DBAL\ParameterType::BOOLEAN,
                 ]
             );
 

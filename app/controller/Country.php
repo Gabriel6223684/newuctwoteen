@@ -26,7 +26,7 @@ final class Country extends Base
         if (!is_null($id)) {
             $qb = \app\database\DB::select('*')->from('countries');
             $country = $qb
-                ->where('id = ' . $qb->createPositionalParameter($id, \Doctrine\DBAL\ParameterType::INTEGER))
+                ->where('id = ' . $qb->createPositionalParameter($id, \phinx\DBAL\ParameterType::INTEGER))
                 ->fetchAssociative();
         }
 

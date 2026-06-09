@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Database;
 
-use Doctrine\DBAL\Query\QueryBuilder;
+use phinx\DBAL\Query\QueryBuilder;
 
 final class DB
 {
@@ -19,7 +19,7 @@ final class DB
     }
 
     # Retorna a conexão DBAL para operações de escrita (insert, update, delete, transação, execute).
-    public static function connection(): \Doctrine\DBAL\Connection
+    public static function connection(): \phinx\DBAL\Connection
     {
         return Connection::get();
     }
