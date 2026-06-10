@@ -42,13 +42,17 @@ final class Home extends Base
             $monthLabels = [];
             $monthValues = [];
 
+            // Garanta sempre 12 meses (se houver falha de consulta/DB ainda assim o eixo X aparece)
+            // e evite depender de retorno do array vindo do banco.
             foreach ($months as $m) {
-                $dt = $now->setDate($year, $m, 1);
-                $label = $dt->format('M'); // ex: Jun
-                // Padroniza para pt-BR abreviado — sem Intl depende do SO, então usamos map fixo.
+                // Labels fixos pt-BR abreviado
                 $monthLabels[] = $this->monthLabelPt($m);
-                $found = array_values(array_filter($vendasMesAno, static fn($r) => (int) $r['ano'] === $year && (int) $r['mes'] === $m));
-                $monthValues[] = $found[0]['total_valor'] ?? 0;
+
+                $found = array_values(array_filter(
+                    $vendasMesAno,
+                    static fn($r) => (int) ($r['ano'] ?? 0) === $year && (int) ($r['mes'] ?? 0) === $m
+                ));
+                $monthValues[] = isset($found[0]) ? (float) ($found[0]['total_valor'] ?? 0) : 0;
             }
 
             // Pie: ABC por classe_valor (A/B/C) somando VALOR

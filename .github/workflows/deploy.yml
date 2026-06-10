@@ -1,0 +1,29 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # OBS: Ajuste abaixo conforme seu ambiente.
+      # Requer kubectl configurado (KUBECONFIG/cluster) e imagem publicada como newuctwoteen:1.0
+      - name: Deploy manifests
+        env:
+          KUBE_NAMESPACE: newuctwoteen
+        run: |
+          kubectl apply -f k8s/namespace-newuctwoteen.yml
+          kubectl apply -f k8s/configmap-nginx.yml
+          kubectl apply -f k8s/deployments.yml
+          kubectl apply -f k8s/services.yml
+
+          # (Opcional) ver logs
+          kubectl -n ${KUBE_NAMESPACE} get pods -o wide
+          kubectl -n ${KUBE_NAMESPACE} get svc -o wide
+

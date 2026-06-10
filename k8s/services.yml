@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-fpm
+  namespace: newuctwoteen
+spec:
+  selector:
+    app: php-fpm
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: newuctwoteen
+spec:
+  selector:
+    app: nginx
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+
