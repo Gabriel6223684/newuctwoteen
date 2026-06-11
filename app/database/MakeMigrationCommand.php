@@ -15,73 +15,77 @@ final class MakeMigrationCommand extends Command
     {
         $this
             ->setName('make:migration')
-            ->setDescription('Cria um arquivo de migration com nome no formato YYYYMMDDHHmmss_nome.php')
+            ->setDescription('Cria uma migration Phinx')
             ->addArgument(
                 'name',
                 InputArgument::REQUIRED,
-                'Nome da migration em snake_case (ex: create_users_table)'
+                'Nome da migration'
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $name      = $input->getArgument('name');
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ): int {
+        $name = (string) $input->getArgument('name');
+
         $timestamp = date('YmdHis');
-        $className = 'Version' . $timestamp;
-        $fileName  = $timestamp . '_' . $name . '.php';
-        $dir       = dirname(__DIR__) . '/database/migration';
-        $filePath  = $dir . '/' . $fileName;
+        $fileName = "{$timestamp}_{$name}.php";
+
+        $dir = dirname(__DIR__) . '/Database/Migration';
 
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
-        if (file_exists($filePath)) {
-            $output->writeln("<error>Arquivo já existe: {$filePath}</error>");
+        $path = "{$dir}/{$fileName}";
+
+        if (file_exists($path)) {
+            $output->writeln(
+                "<error>Migration já existe.</error>"
+            );
+
             return Command::FAILURE;
         }
 
-        file_put_contents($filePath, $this->buildTemplate($className, $name));
+        file_put_contents(
+            $path,
+            $this->buildTemplate($name)
+        );
 
-        $output->writeln('');
-        $output->writeln("<info>✔ Migration criada com sucesso!</info>");
-        $output->writeln("<comment>  Arquivo : </comment>{$fileName}");
-        $output->writeln("<comment>  Classe  : </comment>{$className}");
-        $output->writeln("<comment>  Caminho : </comment>app/database/migration/{$fileName}");
-        $output->writeln('');
+        $output->writeln(
+            "<info>Migration criada:</info> {$fileName}"
+        );
 
         return Command::SUCCESS;
     }
 
-    private function buildTemplate(string $className, string $name): string
+    private function buildTemplate(string $name): string
     {
         return <<<PHP
-            <?php
+<?php
 
-            declare(strict_types=1);
+declare(strict_types=1);
 
-            namespace app\database\migration;
+use Phinx\Migration\AbstractMigration;
 
-            use phinx\DBAL\Schema\Schema;
-            use phinx\Migrations\AbstractMigration;
+final class {$this->migrationClassName($name)} extends AbstractMigration
+{
+    public function change(): void
+    {
+        //
+    }
+}
 
-            final class {$className} extends AbstractMigration
-            {
-                public function getDescription(): string
-                {
-                    return '{$name}';
-                }
+PHP;
+    }
 
-                public function up(Schema \$schema): void
-                {
-                    // escreva aqui as alterações
-                }
-
-                public function down(Schema \$schema): void
-                {
-                    // escreva aqui o rollback do up()
-                }
-            }
-            PHP;
+    private function migrationClassName(string $name): string
+    {
+        return str_replace(
+            ' ',
+            '',
+            ucwords(str_replace('_', ' ', $name))
+        );
     }
 }

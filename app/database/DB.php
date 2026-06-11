@@ -3,27 +3,43 @@
 declare(strict_types=1);
 
 namespace App\Database;
+use PDO;
 
-use phinx\DBAL\Query\QueryBuilder;
-
-final class DB
+final class Connection
 {
-    # Retorna um QueryBuilder com SELECT já configurado. Sem argumentos seleciona tudo ('*').
-    public static function select(string ...$columns): QueryBuilder
-    {
-        $qb = Connection::get()->createQueryBuilder();
+    private static ?PDO $instance = null;
 
-        return empty($columns)
-            ? $qb->select('*')
-            : $qb->select(...$columns);
+    public static function connection(): PDO
+    {
+        return self::get();
     }
 
-    # Retorna a conexão DBAL para operações de escrita (insert, update, delete, transação, execute).
-    public static function connection(): \phinx\DBAL\Connection
+    public static function get(): PDO
     {
-        return Connection::get();
+        if (self::$instance !== null) {
+            return self::$instance;
+        }
+
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $port = (int) ($_ENV['DB_PORT'] ?? 5432);
+
+        self::$instance = new PDO(
+            sprintf(
+                'pgsql:host=%s;port=%d;dbname=%s',
+                $host,
+                $port,
+                $_ENV['DB_NAME'] ?? ''
+            ),
+            $_ENV['DB_USER'] ?? '',
+            $_ENV['DB_PASSWORD'] ?? '',
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
+
+        return self::$instance;
     }
 
-    # Previne instanciação — uso exclusivo via métodos estáticos
     private function __construct() {}
 }

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use app\database\DB;
-
+use App\Database\Connection;
 
 final class Home extends Base
 {
@@ -22,57 +21,83 @@ final class Home extends Base
     public function charts($request, $response)
     {
         try {
-            $vendasMesAno = DB::select('ano', 'mes', 'total_unidades', 'total_valor')
+            // 1. Usa o QueryBuilder do seu DB.php apontando para a sua View
+            // O método select() já traz o objeto preparado do Phinx
+            $vendasMesAno = Connection::select()
                 ->from('vw_vendas_mes_ano')
                 ->orderBy('ano', 'ASC')
-                ->orderBy('mes', 'ASC')
-                ->fetchAllAssociative();
+                ->addOrderBy('mes', 'ASC')
+                ->execute()
+                ->fetchAll(\PDO::FETCH_ASSOC);
 
-            $abc = DB::select('nome', 'valor', 'classe_valor', 'unidades', 'pct_valor')
-                ->from('vw_curva_abc_produtos')
-                ->orderBy('valor', 'DESC')
-                ->fetchAllAssociative();
+            // Normalizar as chaves do banco para minúsculo
+            $vendasMesAno = array_map(function ($row) {
+                return array_change_key_case($row, CASE_LOWER);
+            }, $vendasMesAno);
 
-            // Série de vendas: mês x valor (ou unidades, se preferir)
-            // Vamos construir 12 meses do ano atual.
+            // Definir o ano atual (2026)
             $now = new \DateTimeImmutable('now');
             $year = (int) $now->format('Y');
+
+            // Fallback de ano caso não haja vendas no ano corrente
+            if (!empty($vendasMesAno)) {
+                $anosDisponiveis = array_unique(array_column($vendasMesAno, 'ano'));
+                $anosDisponiveis = array_filter($anosDisponiveis, fn($v) => (int)$v > 0);
+
+                if (!empty($anosDisponiveis) && !in_array($year, $anosDisponiveis)) {
+                    $year = (int) max($anosDisponiveis);
+                }
+            }
 
             $months = range(1, 12);
             $monthLabels = [];
             $monthValues = [];
 
-            // Garanta sempre 12 meses (se houver falha de consulta/DB ainda assim o eixo X aparece)
-            // e evite depender de retorno do array vindo do banco.
+            // Monta o array linear de 12 meses para o Gráfico de Barras
             foreach ($months as $m) {
-                // Labels fixos pt-BR abreviado
                 $monthLabels[] = $this->monthLabelPt($m);
 
                 $found = array_values(array_filter(
                     $vendasMesAno,
-                    static fn($r) => (int) ($r['ano'] ?? 0) === $year && (int) ($r['mes'] ?? 0) === $m
+                    static fn($r) => (int)($r['ano'] ?? 0) === $year && (int)($r['mes'] ?? 0) === $m
                 ));
-                $monthValues[] = isset($found[0]) ? (float) ($found[0]['total_valor'] ?? 0) : 0;
+
+                if (isset($found[0])) {
+                    $valor = (float)($found[0]['total_valor'] ?? 0);
+                    if ($valor === 0.0) {
+                        $valor = (float)($found[0]['total_unidades'] ?? 0);
+                    }
+                    $monthValues[] = $valor;
+                } else {
+                    $monthValues[] = 0;
+                }
             }
 
-            // Pie: ABC por classe_valor (A/B/C) somando VALOR
-            $pie = ['A' => 0, 'B' => 0, 'C' => 0];
-            foreach ($abc as $row) {
-                $classe = (string) ($row['classe_valor'] ?? '');
-                $classe = strtoupper($classe);
-                if (!isset($pie[$classe])) continue;
-                $pie[$classe] += (float) ($row['valor'] ?? 0);
+            // Monta o array de fatias para o Gráfico Redondo com os mesmos dados de meses
+            $pieData = [];
+            foreach ($months as $m) {
+                $nomeMes = $this->monthLabelPt($m);
+                $valorMes = $monthValues[$m - 1] ?? 0.0;
+
+                // Só joga no gráfico redondo os meses que de fato tiveram faturamento
+                if ($valorMes > 0.0) {
+                    $pieData[] = [
+                        'value' => $valorMes,
+                        'name'  => $nomeMes
+                    ];
+                }
             }
 
-            $pieData = [
-                ['value' => $pie['A'], 'name' => 'Classe A'],
-                ['value' => $pie['B'], 'name' => 'Classe B'],
-                ['value' => $pie['C'], 'name' => 'Classe C'],
-            ];
+            // Fallback para o gráfico redondo não quebrar vazio se o ano não tiver vendas
+            if (empty($pieData)) {
+                $pieData = [
+                    ['value' => 0, 'name' => 'Sem Vendas']
+                ];
+            }
 
-            return $this->json($response, [
+            $payload = json_encode([
                 'status' => true,
-                'year' => $year,
+                'year'   => $year,
                 'vendas' => [
                     'months' => $monthLabels,
                     'values' => $monthValues,
@@ -81,11 +106,23 @@ final class Home extends Base
                     'pieData' => $pieData,
                 ],
             ]);
+
+            $response->getBody()->write($payload);
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
         } catch (\Throwable $e) {
-            return $this->json($response, [
+            $payload = json_encode([
                 'status' => false,
                 'msg' => $e->getMessage(),
-            ], 500);
+                'linha' => $e->getLine(),
+                'arquivo' => $e->getFile()
+            ]);
+
+            $response->getBody()->write($payload);
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(500);
         }
     }
 
@@ -108,4 +145,3 @@ final class Home extends Base
         };
     }
 }
-

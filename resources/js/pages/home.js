@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const saleEl = document.getElementById('resultadoVenda');
     const marketingEl = document.getElementById('resultadoMarketing');
 
-    // Se o template não renderizou os elementos ainda, não quebra o JS.
     if (!saleEl || !marketingEl) return;
 
     const ChartSale = echarts.init(saleEl);
@@ -10,8 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const now = new Date();
     const year = now.getFullYear();
+
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    const monthLabels = months.map((m) => {
+    const defaultMonthLabels = months.map((m) => {
         const d = new Date(year, m - 1, 1);
         return d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
     });
@@ -28,56 +28,68 @@ document.addEventListener('DOMContentLoaded', () => {
                     return p ? `${p.axisValue}<br/><b>${p.value}</b> vendas` : '';
                 }
             },
-            legend: { data: ['Totais'] },
+            legend: { data: ['Vendas'] },
             xAxis: {
                 type: 'category',
                 data: months,
-                axisLabel: {
-                    interval: 0,
-                    rotate: 0
-                }
+                axisLabel: { interval: 0, rotate: 0 }
             },
             yAxis: { type: 'value' },
             series: [
                 {
-                    name: 'Totais',
+                    name: 'Vendas',
                     type: 'bar',
                     data: values,
                     barMaxWidth: 40
                 }
             ]
         };
-
         ChartSale.setOption(dataChartsSale, true);
     }
 
-    function setMarketingChart({ pieData }) {
+    function setMarketingChart(abcData) {
+        // Garante que pegamos o array correto enviado pelo PHP
+        const pieData = abcData && abcData.pieData ? abcData.pieData : [];
+
         const dataChartMarketing = {
-            tooltip: { trigger: 'item' },
-            legend: { top: '5%', left: 'center' },
+            title: {
+                text: 'Distribuição por Mês',
+                left: 'center',
+                top: '0%'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: <b>R$ {c}</b> ({d}%)' // Mostra o mês, valor formatado e a %
+            },
+            legend: {
+                show: false // Ocultado para evitar que 12 meses fiquem encavalados no topo
+            },
             series: [
                 {
-                    name: 'ABC',
+                    name: 'Vendas',
                     type: 'pie',
-                    radius: ['40%', '70%'],
-                    avoidLabelOverlap: false,
-                    padAngle: 5,
-                    itemStyle: { borderRadius: 10 },
-                    label: { show: false, position: 'center' },
-                    emphasis: {
-                        label: {
-                            show: true,
-                            fontSize: 40,
-                            fontWeight: 'bold'
-                        }
+                    radius: ['45%', '70%'], // Estilo Rosca/Donut
+                    avoidLabelOverlap: true,
+                    padAngle: 2,
+                    itemStyle: { borderRadius: 6 },
+                    label: {
+                        show: true,
+                        position: 'outside',
+                        formatter: '{b}' // Escreve o nome do mês do lado de fora da fatia
                     },
-                    labelLine: { show: false },
+                    labelLine: {
+                        show: true // Linha guia apontando para o mês
+                    },
                     data: pieData
                 }
             ]
         };
 
-        ChartMarketing.setOption(dataChartMarketing, true);
+        // Altere 'ChartMarketing' para o nome exato da sua instância do ECharts
+        if (typeof ChartMarketing !== 'undefined') {
+            ChartMarketing.setOption(dataChartMarketing, true);
+            ChartMarketing.resize();
+        }
     }
 
     async function loadCharts() {
@@ -88,12 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = await res.json();
             if (!payload?.status) throw new Error(payload?.msg || 'Erro ao carregar gráficos');
 
-            // Garanta array com 12 itens para o eixo X sempre aparecer (meses)
-            const apiMonths = Array.isArray(payload?.vendas?.months) ? payload.vendas.months : [];
-            const apiValues = Array.isArray(payload?.vendas?.values) ? payload.vendas.values : [];
+            const safeMonths = Array.isArray(payload?.vendas?.months) && payload.vendas.months.length > 0
+                ? payload.vendas.months
+                : defaultMonthLabels;
 
-            const safeMonths = apiMonths.length === 12 ? apiMonths : monthLabels;
-            const safeValues = apiValues.length === 12 ? apiValues.map((v) => Number(v) || 0) : Array(12).fill(0);
+            const safeValues = Array.isArray(payload?.vendas?.values) && payload.vendas.values.length > 0
+                ? payload.vendas.values.map((v) => Number(v) || 0)
+                : Array(safeMonths.length).fill(0);
 
             setSaleChart({ months: safeMonths, values: safeValues, year: payload?.year || year });
 
@@ -107,14 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     ]
             });
 
-            // resize após setOption (principalmente se layout/containers mudarem)
             window.requestAnimationFrame(() => {
                 ChartSale.resize();
                 ChartMarketing.resize();
             });
         } catch (e) {
-            // Fallback visual mínimo (evita tela vazia)
-            setSaleChart({ months: monthLabels, values: Array(12).fill(0), year });
+            console.error('Falha ao carregar charts:', e);
+            setSaleChart({ months: defaultMonthLabels, values: Array(12).fill(0), year });
             setMarketingChart({
                 pieData: [
                     { value: 0, name: 'Classe A' },
@@ -122,20 +134,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     { value: 0, name: 'Classe C' }
                 ]
             });
-            console.error('Falha ao carregar charts:', e);
         }
     }
 
+    // Inicializa a carga
     loadCharts();
 
-    // Recalcula se o usuário redimensionar a janela.
     window.addEventListener('resize', () => {
         try {
             ChartSale.resize();
             ChartMarketing.resize();
-        } catch (e) {
-            // ignore
-        }
+        } catch (e) { }
     });
 });
-
