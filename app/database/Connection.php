@@ -23,9 +23,9 @@ final class Connection
 
         $host = $_ENV['DB_HOST'] ?? 'localhost';
         $port = (int) ($_ENV['DB_PORT'] ?? 5432);
-        $db   = $_ENV['DB_NAME'] ?? '';
-        $user = $_ENV['DB_USER'] ?? '';
-        $pass = $_ENV['DB_PASSWORD'] ?? '';
+        $db   = $_ENV['DB_NAME'] ?? 'development_db';
+        $user = $_ENV['DB_USER'] ?? 'senac';
+        $pass = $_ENV['DB_PASSWORD'] ?? 'senac';
 
         $dsn = sprintf(
             'pgsql:host=%s;port=%d;dbname=%s',

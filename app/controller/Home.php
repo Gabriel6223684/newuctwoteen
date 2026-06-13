@@ -6,6 +6,9 @@ namespace App\Controller;
 
 use App\Database\Connection;
 
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+
 final class Home extends Base
 {
     public function home($request, $response)
@@ -18,111 +21,90 @@ final class Home extends Base
             ->withStatus(200);
     }
 
-    public function charts($request, $response)
+    public function charts(Request $request, Response $response): Response
     {
         try {
-            // 1. Usa o QueryBuilder do seu DB.php apontando para a sua View
-            // O método select() já traz o objeto preparado do Phinx
-            $vendasMesAno = Connection::select()
-                ->from('vw_vendas_mes_ano')
-                ->orderBy('ano', 'ASC')
-                ->addOrderBy('mes', 'ASC')
-                ->execute()
-                ->fetchAll(\PDO::FETCH_ASSOC);
+            $pdo = Connection::get();
 
-            // Normalizar as chaves do banco para minúsculo
-            $vendasMesAno = array_map(function ($row) {
-                return array_change_key_case($row, CASE_LOWER);
-            }, $vendasMesAno);
+            // =========================
+            // DADOS DA VIEW (NOVO)
+            // =========================
+            $stmt = $pdo->prepare("
+            SELECT *
+            FROM vw_vendas_mes_ano
+            WHERE ano = 2026
+            ORDER BY mes
+        ");
+            $stmt->execute();
+            $dados = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            // Definir o ano atual (2026)
-            $now = new \DateTimeImmutable('now');
-            $year = (int) $now->format('Y');
+            $mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-            // Fallback de ano caso não haja vendas no ano corrente
-            if (!empty($vendasMesAno)) {
-                $anosDisponiveis = array_unique(array_column($vendasMesAno, 'ano'));
-                $anosDisponiveis = array_filter($anosDisponiveis, fn($v) => (int)$v > 0);
+            $valoresVendas = array_fill(0, 12, 0);
+            $valoresFaturamento = array_fill(0, 12, 0);
 
-                if (!empty($anosDisponiveis) && !in_array($year, $anosDisponiveis)) {
-                    $year = (int) max($anosDisponiveis);
-                }
+            foreach ($dados as $row) {
+                $i = ((int)$row['mes']) - 1;
+
+                $valoresVendas[$i] = (int) $row['total_vendas'];
+                $valoresFaturamento[$i] = (float) $row['total_valor'];
             }
 
-            $months = range(1, 12);
-            $monthLabels = [];
-            $monthValues = [];
+            // ================================
+            // PIZZA (mantém igual)
+            // ================================
+            $stmtPie = $pdo->prepare("
+            SELECT
+                p.nome AS produto,
+                SUM(si.unidades) AS total_vendido
+            FROM sale_items si
+            INNER JOIN products p ON p.id = si.product_id
+            INNER JOIN sales s ON s.id = si.sale_id
+            WHERE EXTRACT(YEAR FROM s.sale_date) = 2026
+            GROUP BY p.id, p.nome
+            ORDER BY total_vendido DESC
+            LIMIT 3
+        ");
+            $stmtPie->execute();
 
-            // Monta o array linear de 12 meses para o Gráfico de Barras
-            foreach ($months as $m) {
-                $monthLabels[] = $this->monthLabelPt($m);
-
-                $found = array_values(array_filter(
-                    $vendasMesAno,
-                    static fn($r) => (int)($r['ano'] ?? 0) === $year && (int)($r['mes'] ?? 0) === $m
-                ));
-
-                if (isset($found[0])) {
-                    $valor = (float)($found[0]['total_valor'] ?? 0);
-                    if ($valor === 0.0) {
-                        $valor = (float)($found[0]['total_unidades'] ?? 0);
-                    }
-                    $monthValues[] = $valor;
-                } else {
-                    $monthValues[] = 0;
-                }
-            }
-
-            // Monta o array de fatias para o Gráfico Redondo com os mesmos dados de meses
             $pieData = [];
-            foreach ($months as $m) {
-                $nomeMes = $this->monthLabelPt($m);
-                $valorMes = $monthValues[$m - 1] ?? 0.0;
 
-                // Só joga no gráfico redondo os meses que de fato tiveram faturamento
-                if ($valorMes > 0.0) {
-                    $pieData[] = [
-                        'value' => $valorMes,
-                        'name'  => $nomeMes
-                    ];
-                }
-            }
-
-            // Fallback para o gráfico redondo não quebrar vazio se o ano não tiver vendas
-            if (empty($pieData)) {
-                $pieData = [
-                    ['value' => 0, 'name' => 'Sem Vendas']
+            foreach ($stmtPie->fetchAll(\PDO::FETCH_ASSOC) as $item) {
+                $pieData[] = [
+                    'name' => $item['produto'],
+                    'value' => (int) $item['total_vendido']
                 ];
             }
 
-            $payload = json_encode([
-                'status' => true,
-                'year'   => $year,
-                'vendas' => [
-                    'months' => $monthLabels,
-                    'values' => $monthValues,
+            // ================================
+            // PAYLOAD (NOVO CAMPO: FATURAMENTO)
+            // ================================
+            $payload = [
+                "status" => true,
+                "year" => 2026,
+                "vendas" => [
+                    "months" => $mesesLabels,
+                    "values" => $valoresVendas
                 ],
-                'abc' => [
-                    'pieData' => $pieData,
+                "faturamento" => [
+                    "months" => $mesesLabels,
+                    "values" => $valoresFaturamento
                 ],
-            ]);
+                "abc" => [
+                    "pieData" => $pieData
+                ]
+            ];
 
-            $response->getBody()->write($payload);
-            return $response
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(200);
-        } catch (\Throwable $e) {
-            $payload = json_encode([
-                'status' => false,
-                'msg' => $e->getMessage(),
-                'linha' => $e->getLine(),
-                'arquivo' => $e->getFile()
-            ]);
+            $response->getBody()->write(json_encode($payload));
 
-            $response->getBody()->write($payload);
-            return $response
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(500);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode([
+                "status" => false,
+                "msg" => $e->getMessage()
+            ]));
+
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
     }
 

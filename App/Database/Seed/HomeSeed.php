@@ -160,37 +160,49 @@ final class HomeSeed extends AbstractSeed
 
         // 2. Loop para criar as vendas (uma para cada mês do ano)
         for ($m = 1; $m <= 12; $m++) {
-            $saleDate = sprintf('%04d-%02d-15', $year, $m);
 
-            // Insere a Venda principal
-            $this->table('sales')->insert([
-                'sale_date' => $saleDate,
-            ])->saveData();
+            // 🔥 cria várias vendas por mês
+            $qtdVendas = rand(5, 12);
 
-            // Pega o ID da venda que acabou de ser criada
-            $saleId = (int) $conn->query('SELECT MAX(id) FROM sales')->fetchColumn();
+            for ($i = 0; $i < $qtdVendas; $i++) {
 
-            // 3. Loop dos produtos: Insere cada produto como um item desta venda
-            $saleItemsTable = $this->table('sale_items');
-            foreach ($productIds as $row) {
-                $pid = (int) $row['id'];
-                $pname = (string) $row['nome'];
+                $saleDate = sprintf(
+                    '%04d-%02d-%02d',
+                    $year,
+                    $m,
+                    rand(1, 28)
+                );
 
-                // Cálculos matemáticos simulados para gerar dados realistas nos gráficos
-                $base = 10 + $m;
-                $mult = $weights[$pname] ?? 1.0;
-                $unidades = (int) max(1, round($base * $mult));
-                $valorUnit = (float) (20 + (int) ($pid % 7) * 10);
+                $this->table('sales')->insert([
+                    'sale_date' => $saleDate,
+                ])->saveData();
 
-                // Insere o Item da Venda (relacionando sale_id e product_id)
-                $saleItemsTable->insert([
-                    'sale_id' => $saleId,
-                    'product_id' => $pid,
-                    'unidades' => $unidades,
-                    'valor_unitario' => $valorUnit,
-                ]);
+                $saleId = (int) $this->getAdapter()->getConnection()->lastInsertId();
+
+                $saleItemsTable = $this->table('sale_items');
+
+                foreach ($productIds as $row) {
+
+                    $pid = (int) $row['id'];
+                    $pname = (string) $row['nome'];
+
+                    $base = 10 + $m + rand(1, 10);
+                    $mult = $weights[$pname] ?? 1.0;
+
+                    $unidades = (int) max(1, round($base * $mult));
+
+                    $valorUnit = (float) (20 + (int) ($pid % 7) * 10);
+
+                    $saleItemsTable->insert([
+                        'sale_id' => $saleId,
+                        'product_id' => $pid,
+                        'unidades' => $unidades,
+                        'valor_unitario' => $valorUnit,
+                    ]);
+                }
+
+                $saleItemsTable->saveData();
             }
-            $saleItemsTable->saveData();
         }
     }
 }

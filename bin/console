@@ -5,46 +5,31 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+use Symfony\Component\Console\Application;
+require __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
-use phinx\Migrations\Configuration\Connection\ExistingConnection;
-use phinx\Migrations\Configuration\Migration\PhpFile;
-use phinx\Migrations\DependencyFactory;
-use phinx\Migrations\Finder\MigrationFinder;
-use phinx\Migrations\Finder\RecursiveRegexFinder;
-use phinx\Migrations\Tools\Console\Command;
-use Symfony\Component\Console\application;
-use app\database\Connection;
-use app\database\MakeMigrationCommand;
+$app = new Application('Migrations');
 
-$config = new PhpFile(__DIR__ . '/../phinx-migrations.php');
+$phinxBinary = __DIR__ . '/../vendor/bin/phinx';
 
-$dependencyFactory = DependencyFactory::fromConnection(
-    $config,
-    new ExistingConnection(Connection::get())
-);
+$app->register('migrate')
+    ->setCode(function () use ($phinxBinary) {
+        passthru("$phinxBinary migrate");
+    });
 
-# RecursiveRegexFinder com pattern que captura o CAMINHO COMPLETO do arquivo.
-# O ^.+ é essencial: sem ele, o RegexIterator retorna apenas ".php" (o trecho que casa),
-# e o phinx tenta fazer require_once('.php'), causando fatal error.
-$dependencyFactory->setService(
-    MigrationFinder::class,
-    new RecursiveRegexFinder('/^.+\.php$/i')
-);
+$app->register('rollback')
+    ->setCode(function () use ($phinxBinary) {
+        passthru("$phinxBinary rollback");
+    });
 
-$app = new application('Migrations — Jaiminho3');
-
-$app->addCommands([
-    new Command\ExecuteCommand($dependencyFactory),
-    new Command\MigrateCommand($dependencyFactory),
-    new Command\StatusCommand($dependencyFactory),
-    new Command\RollupCommand($dependencyFactory),
-    new Command\ListCommand($dependencyFactory),
-    new Command\LatestCommand($dependencyFactory),
-    new Command\SyncMetadataCommand($dependencyFactory),
-    new Command\VersionCommand($dependencyFactory),
-    new MakeMigrationCommand(),
-]);
+$app->register('status')
+    ->setCode(function () use ($phinxBinary) {
+        passthru("$phinxBinary status");
+    });
 
 $app->run();
